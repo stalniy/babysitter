@@ -1,13 +1,13 @@
 const arc = require('@architect/functions')
 const data = require('@begin/data')
 const TelegramBot = require('node-telegram-bot-api');
+const assert = require('assert');
 
-console.log('create bot: ', process.env.TL_TOKEN)
+assert.ok(process.env.TL_TOKEN, `Please set "TL_TOKEN" env var`);
+
 const bot = new TelegramBot(process.env.TL_TOKEN, {
   webHook: true
 });
-
-bot.setWebHook(`https://rain-nem-staging.begin.app/message`);
 
 bot.on('message', (msg) => {
   console.log('<--------')
