@@ -12,6 +12,7 @@ const bot = new TelegramBot(process.env.TL_TOKEN, {
 bot.on('message', (msg) => {
   console.log('<--------')
   bot.sendMessage(msg.chat.id, 'pong')
+    .then(response => console.log('message has been sent', response))
     .catch(error => console.log(error.response.body));
 })
 
