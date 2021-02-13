@@ -11,8 +11,14 @@ const bot = new TelegramBot(process.env.TL_TOKEN, {
 
 bot.on('message', (msg) => {
   console.log('<--------')
-  bot.sendMessage(msg.chat.id, 'pong');
+  bot.sendMessage(msg.chat.id, 'pong')
+    .catch(error => console.log(error.response.body));
 })
+
+bot.on('webhook_error', (error) => {
+  console.log(error.code)
+  console.log(error.response);  // => 'EPARSE'
+});
 
 exports.handler = async function postMessage (req) {
   const body = arc.http.helpers.bodyParser(req);
