@@ -1,0 +1,8 @@
+{
+  "name": "begin-app-post-todos-delete",
+  "dependencies": {
+    "@architect/functions": "latest",
+    "@begin/data": "latest",
+    "node-telegram-bot-api": "^0.51.0"
+  }
+}

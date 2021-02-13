@@ -5,6 +5,7 @@ begin-app
 get  /todos
 post /todos
 post /todos/delete
+post /message
 
 @tables
 data
