@@ -42,13 +42,6 @@ const BUTTON = {
 tf.start(async (ctx) => {
   const name = ctx.from.first_name || ctx.from.username || '';
 
-  await ctx.reply(Markup.keyboard([
-    [
-      Markup.button.text('Start'),
-      Markup.button.text('Summary'),
-    ],
-  ]));
-
   if (!ctx.baby) {
     await ctx.reply(deindent`
       Hi ${name},
@@ -75,7 +68,7 @@ tf.start(async (ctx) => {
         BUTTON.wakeUp,
         BUTTON.fallAsleep,
       ],
-    ]));
+    ]), Markup.removeKeyboard());
   }
 });
 
