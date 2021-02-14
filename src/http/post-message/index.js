@@ -76,20 +76,20 @@ tf.command('status', async (ctx) => {
   const status = await getCurrentStatus(ctx.baby.key);
 
   if (!status) {
-    return ctx.replyWithHTML(deindent`
-      <b>Status</b>:<br>
+    return ctx.replyWithMarkdownV2(deindent`
+      *Status*:
+
       You have never tracked either wake up or sleep. So, I have no information
     `);
   }
 
   const duration = await calcDuration(ctx.baby.key, new Date().toISOString());
 
-  ctx.replyWithHTML(deindent`
-    <b>Status</b>:
-    <ul>
-      <li>State: ${status.lastType}</li>
-      <li>Duration: ${duration}</li>
-    </ul>
+  ctx.replyWithMarkdownV2(deindent`
+    *Status*:
+
+    \\- State: ${status.lastType}
+    \\- Duration: ${duration}
   `, Markup.inlineKeyboard([
     [
       BUTTON.wakeUp,
@@ -110,10 +110,10 @@ tf.action(BUTTON.fallAsleep.callback_data, async (ctx) => {
 
   const duration = await calcDuration(fallAsleep.babyId, fallAsleep.at);
   const message = duration
-    ? `<b>Awaken time</b>: ${duration}`
+    ? `*Awaken time*: ${duration}`
     : 'Roger that!';
   await ctx.editMessageReplyMarkup(Markup.inlineKeyboard([]));
-  await ctx.replyWithHTML(message, Markup.inlineKeyboard([
+  await ctx.replyWithMarkdownV2(message, Markup.inlineKeyboard([
     [BUTTON.wakeUp],
   ]));
 });
@@ -130,7 +130,7 @@ tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
 
   const duration = await calcDuration(wakeUp.babyId, wakeUp.at);
   const message = duration
-    ? `<b>Sleep time</b>: ${duration}`
+    ? `*Sleep time*: ${duration}`
     : 'Roger that!';
   await ctx.editMessageReplyMarkup(Markup.inlineKeyboard([]));
   await ctx.replyWithHTML(message, Markup.inlineKeyboard([
