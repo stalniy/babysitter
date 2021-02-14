@@ -87,7 +87,9 @@ tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
 });
 
 tf.telegram.getMe()
-  .then((info) => tf.botInfo = info);
+  .then((info) => {
+    tf.botInfo = info;
+  });
 
 // tf.launch({
 //   allowedUpdates: ['callback_query', 'message'],
