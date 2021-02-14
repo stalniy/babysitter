@@ -1,4 +1,4 @@
-const { Scenes, Markup } = require('telegraf');
+const { Scenes } = require('telegraf');
 const deindent = require('deindent');
 const data = require('@begin/data');
 
@@ -8,7 +8,7 @@ module.exports = new Scenes.WizardScene(
     ctx.wizard.state.baby = {
       key: ctx.chat.id,
       name: '',
-      birthDate: ''
+      birthDate: '',
     };
     await ctx.reply('What is your baby name?');
     return await ctx.wizard.next();
@@ -36,13 +36,13 @@ module.exports = new Scenes.WizardScene(
     }
 
     ctx.wizard.state.baby.birthDate = birthDate;
-    // await data.set({
-    //   table: 'babies',
-    //   ...ctx.wizard.state.baby,
-    // });
+    await data.set({
+      table: 'babies',
+      ...ctx.wizard.state.baby,
+    });
 
     await ctx.wizard.state.onDone();
 
     return await ctx.scene.leave();
   },
-)
+);

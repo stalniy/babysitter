@@ -1,0 +1,11 @@
+{
+  "extends": [
+    "airbnb-base"
+  ],
+  "rules": {
+    "no-restricted-syntax": "off",
+    "no-return-await": "off",
+    "consistent-return": "off",
+    "no-use-before-define": "off"
+  }
+}
