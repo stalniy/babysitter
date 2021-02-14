@@ -72,18 +72,43 @@ tf.start(async (ctx) => {
   }
 });
 
+tf.command('status', async (ctx) => {
+  const status = await getCurrentStatus(ctx.baby.key);
+
+  if (!status) {
+    return ctx.replyWithMarkdownV2(deindent`
+      **Status**:
+
+      You have never tracked either wake up or sleep. So, I have no information
+    `);
+  }
+
+  const duration = await calcDuration(ctx.baby.key, new Date().toISOString());
+
+  ctx.replyWithMarkdownV2(deindent`
+    **Status**:
+
+    State: ${status.lastType}
+    Duration: ${duration}
+  `, Markup.inlineKeyboard([
+    [
+      BUTTON.wakeUp,
+      BUTTON.fallAsleep,
+    ],
+  ]));
+});
+
 tf.action(BUTTON.fallAsleep.callback_data, async (ctx) => {
   console.log('register asleep', ctx.baby);
-  const fallAsleep = {
+  const fallAsleep = await data.set({
     table: 'regime',
     type: 'fallAsleep',
     babyId: ctx.baby.key,
     at: new Date().toISOString(),
-  };
-  await data.set(fallAsleep);
-  await updateLast('lastFallAsleep', fallAsleep);
+  });
+  await updateStatus(fallAsleep);
 
-  const duration = await calcDuration('lastWakeUp', fallAsleep);
+  const duration = await calcDuration(fallAsleep.babyId, fallAsleep.at);
   const message = duration
     ? `<b>Awaken time</b>: ${duration}`
     : 'Roger that!';
@@ -95,16 +120,15 @@ tf.action(BUTTON.fallAsleep.callback_data, async (ctx) => {
 
 tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
   console.log('register wekeup', ctx.baby);
-  const wakeUp = {
+  const wakeUp = await data.set({
     table: 'regime',
     type: 'wakeUp',
     babyId: ctx.baby.key,
     at: new Date().toISOString(),
-  };
-  await data.set(wakeUp);
-  await updateLast('lastWakeUp', wakeUp);
+  });
+  await updateStatus(wakeUp);
 
-  const duration = await calcDuration('lastFallAsleep', wakeUp);
+  const duration = await calcDuration(wakeUp.babyId, wakeUp.at);
   const message = duration
     ? `<b>Sleep time</b>: ${duration}`
     : 'Roger that!';
@@ -114,26 +138,36 @@ tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
   ]));
 });
 
-async function updateLast(prefix, object) {
+let currentStatus;
+async function updateStatus(object) {
+  currentStatus = {
+    key: `status.${object.babyId}`,
+    lastKey: object.key,
+    lastType: object.type,
+    updatedAt: object.at,
+  };
   await data.set({
     table: 'regime',
-    key: `${prefix}.${object.babyId}`,
-    at: object.at,
+    ...currentStatus,
   });
 }
 
-async function calcDuration(prefix, endObject) {
-  const startObject = await data.get({
+async function getCurrentStatus(babyId) {
+  return currentStatus || await data.get({
     table: 'regime',
-    key: `${prefix}.${endObject.babyId}`,
+    key: `status.${babyId}`,
   });
+}
 
-  if (!startObject) {
+async function calcDuration(babyId, endTime) {
+  const status = await getCurrentStatus(babyId);
+
+  if (!status) {
     return null;
   }
 
-  const startDate = new Date(startObject.at).getTime();
-  const endDate = new Date(endObject.at).getTime();
+  const startDate = new Date(status.updatedAt).getTime();
+  const endDate = new Date(endTime).getTime();
   return humanizeTime((endDate - startDate) / 1000);
 }
 
