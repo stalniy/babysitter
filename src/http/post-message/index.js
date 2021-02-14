@@ -35,12 +35,19 @@ tf.use(async (ctx, next) => {
 });
 
 const BUTTON = {
-  wakeUp: Markup.button.callback('Wake Up', 'wakeUp', true),
-  fallAsleep: Markup.button.callback('Fall asleep', 'fallAsleep', true),
+  wakeUp: Markup.button.callback('Wake Up', 'wakeUp'),
+  fallAsleep: Markup.button.callback('Fall asleep', 'fallAsleep'),
 };
 
 tf.start(async (ctx) => {
   const name = ctx.from.first_name || ctx.from.username || '';
+
+  await ctx.reply(Markup.keyboard([
+    [
+      Markup.button.text('Start'),
+      Markup.button.text('Summary'),
+    ],
+  ]));
 
   if (!ctx.baby) {
     await ctx.reply(deindent`
@@ -87,6 +94,7 @@ tf.action(BUTTON.fallAsleep.callback_data, async (ctx) => {
   const message = duration
     ? `<b>Awaken time</b>: ${duration}`
     : 'Roger that!';
+  await ctx.editMessageReplyMarkup(Markup.inlineKeyboard([]));
   await ctx.replyWithHTML(message, Markup.inlineKeyboard([
     [BUTTON.wakeUp],
   ]));
@@ -107,6 +115,7 @@ tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
   const message = duration
     ? `<b>Sleep time</b>: ${duration}`
     : 'Roger that!';
+  await ctx.editMessageReplyMarkup(Markup.inlineKeyboard([]));
   await ctx.replyWithHTML(message, Markup.inlineKeyboard([
     [BUTTON.fallAsleep],
   ]));
