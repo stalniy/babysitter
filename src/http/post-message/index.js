@@ -76,20 +76,20 @@ tf.command('status', async (ctx) => {
   const status = await getCurrentStatus(ctx.baby.key);
 
   if (!status) {
-    return ctx.replyWithMarkdownV2(deindent`
-      **Status**:
-
-      You have never tracked either wake up or sleep. So, I have no information
+    return ctx.replyWithHTML(deindent`
+      <b>Status</b>:
+      <p>You have never tracked either wake up or sleep. So, I have no information</p>
     `);
   }
 
   const duration = await calcDuration(ctx.baby.key, new Date().toISOString());
 
-  ctx.replyWithMarkdownV2(deindent`
-    **Status**:
-
-    State: ${status.lastType}
-    Duration: ${duration}
+  ctx.replyWithHTML(deindent`
+    <b>Status</b>:
+    <ul>
+      <li>State: ${status.lastType}</li>
+      <li>Duration: ${duration}</li>
+    </ul>
   `, Markup.inlineKeyboard([
     [
       BUTTON.wakeUp,
