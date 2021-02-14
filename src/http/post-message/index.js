@@ -91,8 +91,7 @@ tf.command('status', async (ctx) => {
   ctx.replyWithMarkdownV2(deindent`
     *Status*:
 
-    \\- State: ${status.lastType}
-    \\- Duration: ${duration}
+    ${ctx.baby.name} has been *${status.lastType}* for *${duration}*
   `, Markup.inlineKeyboard([
     [status.lastType === 'wakeUp' ? BUTTON.fallAsleep : BUTTON.wakeUp],
   ]));
@@ -102,15 +101,15 @@ tf.telegram.setMyCommands(commands);
 
 tf.action(BUTTON.fallAsleep.callback_data, async (ctx) => {
   console.log('register asleep', ctx.baby);
-  const fallAsleep = await data.set({
+  const state = await data.set({
     table: 'regime',
     type: 'fallAsleep',
     babyId: ctx.baby.key,
     at: new Date().toISOString(),
   });
-  await updateStatus(fallAsleep);
 
-  const duration = await calcDuration(fallAsleep.babyId, fallAsleep.at);
+  const duration = await calcDuration(state.babyId, state.at);
+  await updateStatus(state);
   const message = duration
     ? `*Awaken time*: ${duration}`
     : 'Roger that!';
@@ -122,15 +121,15 @@ tf.action(BUTTON.fallAsleep.callback_data, async (ctx) => {
 
 tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
   console.log('register wekeup', ctx.baby);
-  const wakeUp = await data.set({
+  const state = await data.set({
     table: 'regime',
     type: 'wakeUp',
     babyId: ctx.baby.key,
     at: new Date().toISOString(),
   });
-  await updateStatus(wakeUp);
 
-  const duration = await calcDuration(wakeUp.babyId, wakeUp.at);
+  const duration = await calcDuration(state.babyId, state.at);
+  await updateStatus(state);
   const message = duration
     ? `*Sleep time*: ${duration}`
     : 'Roger that!';
@@ -141,8 +140,9 @@ tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
 });
 
 let currentStatus;
-async function updateStatus(object) {
+async function updateStatus(object, meta) {
   currentStatus = {
+    ...meta,
     key: `status.${object.babyId}`,
     lastKey: object.key,
     lastType: object.type,
