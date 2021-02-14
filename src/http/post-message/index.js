@@ -38,7 +38,9 @@ const BUTTON = {
   wakeUp: Markup.button.callback('Wake Up', 'wakeUp'),
   fallAsleep: Markup.button.callback('Fall asleep', 'fallAsleep'),
 };
+const commands = [];
 
+commands.push({ command: '/start', description: 'Register baby' });
 tf.start(async (ctx) => {
   const name = ctx.from.first_name || ctx.from.username || '';
 
@@ -63,15 +65,11 @@ tf.start(async (ctx) => {
       Hi ${name},
       I've already know that this chat is for "${ctx.baby.name}".
       If you want to add another baby just create a new chat group and add me there.
-    `, Markup.inlineKeyboard([
-      [
-        BUTTON.wakeUp,
-        BUTTON.fallAsleep,
-      ],
-    ]), Markup.removeKeyboard());
+    `);
   }
 });
 
+commands.push({ command: '/status', description: 'Shows the current state of regime' });
 tf.command('status', async (ctx) => {
   const status = await getCurrentStatus(ctx.baby.key);
 
@@ -80,7 +78,12 @@ tf.command('status', async (ctx) => {
       *Status*:
 
       You have never tracked either wake up or sleep\\. So, I have no information
-    `);
+    `, Markup.inlineKeyboard([
+      [
+        BUTTON.wakeUp,
+        BUTTON.fallAsleep,
+      ],
+    ]));
   }
 
   const duration = await calcDuration(ctx.baby.key, new Date().toISOString());
@@ -91,12 +94,11 @@ tf.command('status', async (ctx) => {
     \\- State: ${status.lastType}
     \\- Duration: ${duration}
   `, Markup.inlineKeyboard([
-    [
-      BUTTON.wakeUp,
-      BUTTON.fallAsleep,
-    ],
+    [status.lastType === 'wakeUp' ? BUTTON.fallAsleep : BUTTON.wakeUp],
   ]));
 });
+
+tf.telegram.setMyCommands(commands);
 
 tf.action(BUTTON.fallAsleep.callback_data, async (ctx) => {
   console.log('register asleep', ctx.baby);
@@ -133,7 +135,7 @@ tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
     ? `*Sleep time*: ${duration}`
     : 'Roger that!';
   await ctx.editMessageReplyMarkup(Markup.inlineKeyboard([]));
-  await ctx.replyWithHTML(message, Markup.inlineKeyboard([
+  await ctx.replyWithMarkdownV2(message, Markup.inlineKeyboard([
     [BUTTON.fallAsleep],
   ]));
 });
