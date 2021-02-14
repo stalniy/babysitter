@@ -132,7 +132,7 @@ async function calcDuration(prefix, endObject) {
 
   const startDate = new Date(startObject.at).getTime();
   const endDate = new Date(endObject.at).getTime();
-  return humanizeTime(endDate - startDate);
+  return humanizeTime((endDate - startDate) / 1000);
 }
 
 function humanizeTime(duration) {
