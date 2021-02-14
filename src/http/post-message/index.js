@@ -79,7 +79,7 @@ tf.command('status', async (ctx) => {
     return ctx.replyWithMarkdownV2(deindent`
       *Status*:
 
-      You have never tracked either wake up or sleep. So, I have no information
+      You have never tracked either wake up or sleep\\. So, I have no information
     `);
   }
 
