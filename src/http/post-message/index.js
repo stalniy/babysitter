@@ -7,11 +7,7 @@ const { stage } = require('./flows');
 
 assert.ok(process.env.TL_TOKEN, `Please set "TL_TOKEN" env var`);
 
-const tf = new Telegraf(process.env.TL_TOKEN, {
-  telegram: {
-    webhookReply: true
-  }
-});
+const tf = new Telegraf(process.env.TL_TOKEN);
 
 const babies = new Map();
 
@@ -120,7 +116,8 @@ async function wakeUp(baby) {
 
 exports.handler = async function postMessage (req) {
   const body = arc.http.helpers.bodyParser(req);
-  bot.processUpdate(body);
+  console.log('received request');
+  tf.handleUpdate(body);
 
   return {
     statusCode: 200,
