@@ -9,8 +9,9 @@ assert.ok(process.env.TL_TOKEN, 'Please set "TL_TOKEN" env var');
 
 const tf = new Telegraf(process.env.TL_TOKEN, {
   telegram: {
-    webhookReply: true
-  }
+    webhookReply: true,
+    webhook: true,
+  },
 });
 
 const babies = new Map();
@@ -85,10 +86,13 @@ tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
   ]));
 });
 
-tf.launch({
-  allowedUpdates: ['callback_query', 'message'],
+tf.telegram.getMe()
+  .then((info) => tf.botInfo = info);
 
-});
+// tf.launch({
+//   allowedUpdates: ['callback_query', 'message'],
+//   webhook
+// });
 
 async function fallAsleep(baby) {
   console.log('register asleep', baby);
