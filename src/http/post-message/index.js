@@ -35,8 +35,8 @@ tf.use(async (ctx, next) => {
 });
 
 const BUTTON = {
-  wakeUp: Markup.button.callback('Wake Up', 'wakeUp'),
-  fallAsleep: Markup.button.callback('Fall asleep', 'fallAsleep'),
+  wakeUp: Markup.button.callback('Wake Up', 'wakeUp', true),
+  fallAsleep: Markup.button.callback('Fall asleep', 'fallAsleep', true),
 };
 
 tf.start(async (ctx) => {
