@@ -86,11 +86,6 @@ tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
   ]));
 });
 
-tf.telegram.getMe()
-  .then((info) => {
-    tf.botInfo = info;
-  });
-
 // tf.launch({
 //   allowedUpdates: ['callback_query', 'message'],
 //   webhook
@@ -119,7 +114,8 @@ async function wakeUp(baby) {
 exports.handler = async function postMessage(req) {
   const body = arc.http.helpers.bodyParser(req);
   console.log('received request');
-  tf.handleUpdate(body);
+  await tf.handleUpdate(body);
+  console.log('updates tf', body);
 
   return {
     statusCode: 200,
