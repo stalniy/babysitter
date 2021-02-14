@@ -7,7 +7,11 @@ const { stage } = require('./flows');
 
 assert.ok(process.env.TL_TOKEN, 'Please set "TL_TOKEN" env var');
 
-const tf = new Telegraf(process.env.TL_TOKEN);
+const tf = new Telegraf(process.env.TL_TOKEN, {
+  telegram: {
+    webhookReply: true
+  }
+});
 
 const babies = new Map();
 
@@ -83,6 +87,7 @@ tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
 
 tf.launch({
   allowedUpdates: ['callback_query', 'message'],
+
 });
 
 async function fallAsleep(baby) {
