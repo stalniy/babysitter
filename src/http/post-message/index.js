@@ -50,7 +50,7 @@ tf.start(async (ctx) => {
     `);
     await ctx.scene.enter('RegisterBaby', {
       async onDone() {
-        await ctx.reply('Woohooo! We are done.', Markup.keyboard([
+        await ctx.reply('Woohooo! We are done.', Markup.inlineKeyboard([
           [
             BUTTON.wakeUp,
             BUTTON.fallAsleep,
@@ -73,42 +73,80 @@ tf.start(async (ctx) => {
 });
 
 tf.action(BUTTON.fallAsleep.callback_data, async (ctx) => {
-  await fallAsleep(ctx.baby);
-  await ctx.reply('Roger that!', Markup.keyboard([
+  console.log('register asleep', ctx.baby);
+  const fallAsleep = {
+    table: 'regime',
+    type: 'fallAsleep',
+    babyId: ctx.baby.key,
+    at: new Date().toISOString(),
+  };
+  await data.set(fallAsleep);
+  await updateLast('lastFallAsleep', fallAsleep);
+
+  const duration = await calcDuration('lastWakeUp', fallAsleep);
+  const message = duration
+    ? `<b>Awaken time</b>: ${duration}`
+    : 'Roger that!';
+  await ctx.replyWithHTML(message, Markup.inlineKeyboard([
     [BUTTON.wakeUp],
   ]));
 });
 
 tf.action(BUTTON.wakeUp.callback_data, async (ctx) => {
-  await wakeUp(ctx.baby);
-  await ctx.reply('Roger that!', Markup.keyboard([
+  console.log('register wekeup', ctx.baby);
+  const wakeUp = {
+    table: 'regime',
+    type: 'wakeUp',
+    babyId: ctx.baby.key,
+    at: new Date().toISOString(),
+  };
+  await data.set(wakeUp);
+  await updateLast('lastWakeUp', wakeUp);
+
+  const duration = await calcDuration('lastFallAsleep', wakeUp);
+  const message = duration
+    ? `<b>Sleep time</b>: ${duration}`
+    : 'Roger that!';
+  await ctx.replyWithHTML(message, Markup.inlineKeyboard([
     [BUTTON.fallAsleep],
   ]));
 });
 
-// tf.launch({
-//   allowedUpdates: ['callback_query', 'message'],
-//   webhook
-// });
-
-async function fallAsleep(baby) {
-  console.log('register asleep', baby);
+async function updateLast(prefix, object) {
   await data.set({
     table: 'regime',
-    type: 'fallAsleep',
-    babyId: baby.key,
-    at: new Date().toISOString(),
+    key: `${prefix}.${object.babyId}`,
+    at: object.at,
   });
 }
 
-async function wakeUp(baby) {
-  console.log('register wekeup', baby);
-  await data.set({
+async function calcDuration(prefix, endObject) {
+  const startObject = await data.get({
     table: 'regime',
-    type: 'wakeUp',
-    babyId: baby.key,
-    at: new Date().toISOString(),
+    key: `${prefix}.${endObject.babyId}`,
   });
+
+  if (!startObject) {
+    return null;
+  }
+
+  const startDate = new Date(startObject.at).getTime();
+  const endDate = new Date(endObject.at).getTime();
+  return humanizeTime(endDate - startDate);
+}
+
+function humanizeTime(duration) {
+  const time = [
+    Math.floor(duration / 3600),
+    parseInt((duration / 60) % 60, 10),
+    parseInt(duration % 60, 10),
+  ];
+
+  time.forEach((part, index) => {
+    time[index] = part < 10 ? `0${part}` : part;
+  });
+
+  return time.join(':');
 }
 
 exports.handler = async function postMessage(req) {
