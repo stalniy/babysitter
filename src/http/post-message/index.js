@@ -63,7 +63,7 @@ tf.start(async (ctx) => {
       Hi ${name},
       I've already know that this chat is for "${ctx.baby.name}".
       If you want to add another baby just create a new chat group and add me there.
-    `, Markup.keyboard([
+    `, Markup.inlineKeyboard([
       [
         BUTTON.wakeUp,
         BUTTON.fallAsleep,
