@@ -77,8 +77,8 @@ tf.command('status', async (ctx) => {
 
   if (!status) {
     return ctx.replyWithHTML(deindent`
-      <b>Status</b>:
-      <p>You have never tracked either wake up or sleep. So, I have no information</p>
+      <b>Status</b>:<br>
+      You have never tracked either wake up or sleep. So, I have no information
     `);
   }
 
