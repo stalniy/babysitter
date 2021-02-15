@@ -4,7 +4,6 @@
   "description": "Begin basic CRUD app",
   "scripts": {
     "start": "npx sandbox",
-    "lint": "eslint src",
     "test2": "cross-env NODE_ENV=testing PORT=6666 tape test/*-test.js ./test/**/*-test.js | tap-spec"
   },
   "dependencies": {

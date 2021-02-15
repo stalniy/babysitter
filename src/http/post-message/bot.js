@@ -16,10 +16,10 @@ module.exports = function createBot(token, options) {
   bot.use(stage);
   bot.use(async (ctx, next) => {
     ctx.baby = await babies.get(ctx.chat.id);
-    // console.dir({
-    //   message: ctx.message,
-    //   hasBaby: !!ctx.baby,
-    // }, { depth: null });
+    console.dir({
+      message: ctx.message,
+      hasBaby: !!ctx.baby,
+    }, { depth: null });
 
     if (!ctx.baby && ctx.message && ctx.message.text && !ctx.message.text.trim().startsWith('/start')) {
       ctx.reply(deindent`
