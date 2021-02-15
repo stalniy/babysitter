@@ -21,7 +21,7 @@ module.exports = function createBot(token, options) {
     //   hasBaby: !!ctx.baby,
     // }, { depth: null });
 
-    if (!ctx.baby && ctx.message.text && !ctx.message.text.trim().startsWith('/start')) {
+    if (!ctx.baby && ctx.message && ctx.message.text && !ctx.message.text.trim().startsWith('/start')) {
       ctx.reply(deindent`
         This chat has not be associated with any baby.
         Please use /start command to register a baby.
