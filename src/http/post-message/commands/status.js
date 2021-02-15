@@ -1,15 +1,15 @@
 const deindent = require('deindent');
 const { Markup } = require('telegraf');
 const actions = require('../actions');
+const { formatTime } = require('../services/date');
 
 async function exec(ctx) {
   const status = await ctx.regime.getCurrentStatus();
 
-  if (!status.duration) {
+  if (!status) {
     return ctx.replyWithMarkdownV2(deindent`
       *Status*:
-
-      You have never tracked either wake up or sleep\\. So, I have no information
+      Cannot provide status because you have never tracked either wake up or sleep\\.
     `, Markup.inlineKeyboard([
       [
         actions.wakeUp.button,
@@ -20,10 +20,10 @@ async function exec(ctx) {
 
   ctx.replyWithMarkdownV2(deindent`
     *Status*:
-
-    ${ctx.baby.name} has been *${status.lastType}* for *${status.duration}*
+    ${ctx.baby.name} has been *${status.lastEvent.type}* for *${status.duration}*\\ \\(at ${formatTime(status.lastEvent.at)}\\)\\.
+    Amount of dreams: ${status.amountOfDreams}
   `, Markup.inlineKeyboard([
-    [status.lastType === 'wakeUp' ? actions.sleep.button : actions.wakeUp.button],
+    [status.lastEvent.type === 'wakeUp' ? actions.sleep.button : actions.wakeUp.button],
   ]));
 }
 

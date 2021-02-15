@@ -8,11 +8,11 @@ class RegimeService {
   }
 
   async createEvent(type, payload = null) {
-    const event = await data.create({
+    const event = await data.set({
       ...payload,
       tableName: this.tableName,
       type,
-      at: new Date().toISOString().split('T')[1],
+      at: new Date().toISOString(),
     });
 
     if (this.events) {
@@ -22,37 +22,57 @@ class RegimeService {
     return event;
   }
 
-  async getStatusAt(time) {
-    const events = this.events || await data.get({ tableName: this.tableName });
-    let latestEvent = events[events.length - 1];
+  async setEventTime(eventId, time) {
+    const events = await this.getEvents();
+    const eventToUpdate = events.find((event) => event.key === eventId);
 
-    if (latestEvent.at === time) {
-      latestEvent = events[events.length - 2];
+    if (!eventToUpdate) {
+      throw new ReferenceError(`Trying to update time of unknown event with id ${eventId}`);
     }
 
-    if (!latestEvent) {
+    // TODO: timezone!
+    const date = new Date(eventToUpdate.at);
+    const chunks = time.split(':').map((v) => Number(v));
+    date.setHours(...chunks);
+
+    console.log('timezone offset = ', date.getTimezoneOffset());
+
+    eventToUpdate.at = date.toISOString();
+    await data.set({
+      ...eventToUpdate,
+      table: this.tableName,
+      key: eventId,
+    });
+  }
+
+  async getEvents() {
+    this.events = this.events || await data.get({ tableName: this.tableName });
+    return this.events;
+  }
+
+  async getStatusAt(dateTime) {
+    const events = await this.getEvents();
+    let lastEvent = events[events.length - 1];
+
+    if (lastEvent && lastEvent.at === dateTime) {
+      lastEvent = events[events.length - 2];
+    }
+
+    if (!lastEvent) {
       return null;
     }
 
     return {
-      lastType: latestEvent.type,
-      duration: humanizeTime(timeToSeconds(time) - timeToSeconds(latestEvent.at)),
+      amountOfDreams: events.filter((event) => event.type === 'fallAsleep').length,
+      eventsAmount: events.length,
+      lastEvent,
+      duration: humanizeTime((new Date(dateTime) - new Date(lastEvent.at)) / 1000),
     };
   }
 
   async getCurrentStatus() {
-    const now = new Date().toISOString().split('T')[1];
-    return this.getStatusAt(now);
+    return this.getStatusAt(new Date().toISOString());
   }
-}
-
-const TIME_CHUNKS_IN_SECONDS = [60 * 60, 60, 1];
-function timeToSeconds(rawTime) {
-  const dotIndex = rawTime.indexOf('.');
-  const time = dotIndex === -1 ? rawTime : rawTime.slice(0, dotIndex);
-
-  return time.split(':')
-    .reduce((seconds, chunk, index) => seconds + Number(chunk) * TIME_CHUNKS_IN_SECONDS[index], 0);
 }
 
 function humanizeTime(duration) {

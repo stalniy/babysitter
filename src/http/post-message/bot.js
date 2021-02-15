@@ -6,20 +6,22 @@ const babies = require('./services/baby');
 
 module.exports = function createBot(token, options) {
   const bot = new Telegraf(token, {
-    telegram: {
-      webhookReply: true,
-      webhook: true,
-    },
+    // telegram: {
+    //   webhookReply: true,
+    //   webhook: true,
+    // },
   });
 
+  bot.use(session());
+  bot.use(stage);
   bot.use(async (ctx, next) => {
     ctx.baby = await babies.get(ctx.chat.id);
-    console.log({
-      message: ctx.message,
-      hasBaby: !!ctx.baby,
-    });
+    // console.dir({
+    //   message: ctx.message,
+    //   hasBaby: !!ctx.baby,
+    // }, { depth: null });
 
-    if (!ctx.baby && !ctx.message.trim().startsWith('/start')) {
+    if (!ctx.baby && ctx.message.text && !ctx.message.text.trim().startsWith('/start')) {
       ctx.reply(deindent`
         This chat has not be associated with any baby.
         Please use /start command to register a baby.
@@ -30,9 +32,6 @@ module.exports = function createBot(token, options) {
     ctx.regime = new RegimeService(ctx.chat.id);
     await next();
   });
-  bot.use(session());
-  bot.use(stage);
-
   const commandsInfo = [];
   options.commands.forEach((command) => {
     bot.command(command.name, command.exec);
@@ -44,7 +43,11 @@ module.exports = function createBot(token, options) {
   bot.telegram.setMyCommands(commandsInfo);
 
   options.actions.forEach((action) => {
-    bot.action(action.button.callback_data, action.exec);
+    if (action.button) {
+      bot.action(action.button.callback_data, action.exec);
+    } else {
+      bot.hears(action.trigger, action.exec);
+    }
   });
 
   return bot;

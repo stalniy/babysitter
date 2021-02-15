@@ -6,6 +6,8 @@
     "no-restricted-syntax": "off",
     "no-return-await": "off",
     "consistent-return": "off",
-    "no-use-before-define": "off"
+    "no-use-before-define": "off",
+    "no-param-reassign": "off",
+    "no-plusplus": "off"
   }
 }

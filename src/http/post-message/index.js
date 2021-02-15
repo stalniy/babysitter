@@ -10,9 +10,19 @@ const bot = createBot(process.env.TL_TOKEN, {
   actions: Object.values(actions),
 });
 
+if (process.env.NODE_ENV === 'testing') {
+  console.log('use polling to receive updates');
+  bot.launch();
+}
+
 exports.handler = async function postMessage(req) {
   const body = arc.http.helpers.bodyParser(req);
-  await bot.handleUpdate(body);
+
+  if (body && body.update_id) {
+    await bot.handleUpdate(body);
+  } else {
+    console.warn('receive incorrect tf update', body);
+  }
 
   return {
     statusCode: 200,
