@@ -18,6 +18,10 @@ exports.handler = async () => {
     { table: 'regime', key: 'zB5o3PBASm' },
     { table: 'todos', key: 'QNmXRrDAck' },
     { table: 'babies', key: -503512180 },
-    { table: 'babies', key: 616953564 },
+    { table: 'regime', key: 'lastWakeUp.616953564' },
+    { table: 'regime', key: 'm26zxZN3Fv' },
+    { table: 'regime', key: 'pRKPPy3PHz' },
+    { table: 'regime', key: 'status.616953564' },
+    { table: 'regime', key: 'wE5NqoGjhP' },
   ]);
 };
