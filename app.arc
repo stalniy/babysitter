@@ -3,6 +3,7 @@ begin-app
 
 @http
 post /message
+post /clear
 
 @tables
 data
