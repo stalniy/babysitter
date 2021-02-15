@@ -1,4 +1,5 @@
 const { emojify } = require('node-emoji');
+const { timeToUTC, isValidTime } = require('../services/date');
 
 async function exec(ctx) {
   const reply = ctx.message.reply_to_message;
@@ -10,17 +11,20 @@ async function exec(ctx) {
 
   const newTime = ctx.match[1].trim();
 
-  if (!/^\d{2}:\d{2}(?:\d{2})?$/.test(newTime)) {
-    return ctx.replyWithMarkdownV2('The command to change time be of this pattern: *change to hh:dd:ss* (e.g., 11:42 or 11:42:38)');
+  if (!isValidTime(newTime)) {
+    return ctx.replyWithMarkdownV2('The command to change time be of this pattern: *change to h:d:s* (e.g., 11:42 or 11:42:38)');
   }
 
   const eventId = reply.text.slice(hashIndex + 1);
-  try {
-    await ctx.regime.setEventTime(eventId, newTime);
+  const originalMessageDate = new Date(reply.date * 1000);
+  const newDate = timeToUTC(originalMessageDate, newTime);
+  console.log(originalMessageDate, newTime, '<---');
+  const result = await ctx.regime.setEventTime(eventId, newDate);
+
+  if (result.type === 'error') {
+    await ctx.reply(result.message);
+  } else {
     await ctx.reply(emojify(':thumbsup:'));
-  } catch (error) {
-    await ctx.reply(`Sorry, due to unexpected error I cannot change event time:\n${error.message}`);
-    throw error;
   }
 }
 

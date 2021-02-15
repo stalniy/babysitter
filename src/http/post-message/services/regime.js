@@ -1,6 +1,7 @@
 const formatRelative = require('date-fns/formatDistance');
 const data = require('./persistance');
-const { changeDateTime } = require('./date');
+const Result = require('./result');
+const { formatTime } = require('./date');
 
 class RegimeService {
   constructor(babyId) {
@@ -24,20 +25,36 @@ class RegimeService {
     return event;
   }
 
-  async setEventTime(eventId, time) {
+  async setEventTime(eventId, newDate) {
     const events = await this.getEvents();
-    const eventToUpdate = events.find((event) => event.key === eventId);
+    const eventToUpdateIdx = events.findIndex((event) => event.key === eventId);
 
-    if (!eventToUpdate) {
-      throw new ReferenceError(`Trying to update time of unknown event with id ${eventId}`);
+    if (eventToUpdateIdx === -1) {
+      return Result.error(`Trying to update time of unknown event with id ${eventId}`);
     }
 
-    eventToUpdate.at = changeDateTime(eventToUpdate.at, time);
+    const prevEvent = events[eventToUpdateIdx - 1];
+    const isInvalidDate = newDate.getTime() > Date.now()
+      || prevEvent && newDate.getTime() < new Date(prevEvent.at).getTime();
+    if (isInvalidDate) {
+      const now = formatTime(Date.now());
+      const message = prevEvent
+        ? `New time should be in range between ${now} and ${formatTime(prevEvent.at)}`
+        : `New time should not be greater than ${now}`;
+      return Result.error(message);
+    }
+
+    const eventToUpdate = events[eventToUpdateIdx];
+    const newIsoDate = newDate.toISOString();
     await data.set({
       ...eventToUpdate,
+      at: newIsoDate,
       table: this.tableName,
       key: eventId,
     });
+    eventToUpdate.at = newIsoDate;
+
+    return Result.value();
   }
 
   async getEvents() {
