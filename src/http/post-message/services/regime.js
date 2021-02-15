@@ -3,11 +3,30 @@ const data = require('./persistance');
 const Result = require('./result');
 const { formatTime } = require('./date');
 
+const cache = new Map();
+
 class RegimeService {
-  constructor(babyId) {
+  static for(babyId, dateTime = null) {
+    const now = dateTime || new Date();
+    const tableName = computeTableName(babyId, now);
+
+    if (!cache.has(tableName)) {
+      const service = new RegimeService(babyId, now);
+      cache.set(tableName, service);
+      return service;
+    }
+
+    return cache.get(tableName);
+  }
+
+  constructor(babyId, dateTime) {
     this.babyId = babyId;
-    this.tableName = `regime.${babyId}.${new Date().toISOString().split('T')[0]}`;
+    this.tableName = `regime.${babyId}.${dateTime.toISOString().split('T')[0]}`;
     this.events = null;
+  }
+
+  forDate(dateTime) {
+    return RegimeService.for(this.babyId, dateTime);
   }
 
   async createEvent(type, payload = null) {
@@ -85,6 +104,11 @@ class RegimeService {
   async getCurrentStatus() {
     return this.getStatusAt(new Date().toISOString());
   }
+}
+
+function computeTableName(babyId, dateTime) {
+  const isoDate = dateTime.toISOString();
+  return `regime.${babyId}.${isoDate.slice(0, isoDate.indexOf('T'))}`;
 }
 
 function calcDuration(date, anotherDate) {

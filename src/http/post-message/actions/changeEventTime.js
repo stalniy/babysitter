@@ -18,8 +18,7 @@ async function exec(ctx) {
   const eventId = reply.text.slice(hashIndex + 1);
   const originalMessageDate = new Date(reply.date * 1000);
   const newDate = timeToUTC(originalMessageDate, newTime);
-  console.log(originalMessageDate, newTime, '<---');
-  const result = await ctx.regime.setEventTime(eventId, newDate);
+  const result = await ctx.regime.forDate(originalMessageDate).setEventTime(eventId, newDate);
 
   if (result.type === 'error') {
     await ctx.reply(result.message);

@@ -29,7 +29,7 @@ module.exports = function createBot(token, options) {
       return;
     }
 
-    ctx.regime = new RegimeService(ctx.chat.id);
+    ctx.regime = RegimeService.for(ctx.chat.id);
     await next();
   });
   const commandsInfo = [];
