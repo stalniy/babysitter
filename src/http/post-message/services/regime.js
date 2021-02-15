@@ -46,7 +46,7 @@ class RegimeService {
   }
 
   async getEvents() {
-    this.events = this.events || await data.get({ tableName: this.tableName });
+    this.events = this.events || await data.get({ table: this.tableName });
     return this.events;
   }
 
