@@ -19,7 +19,7 @@ async function exec(ctx) {
     await ctx.regime.setEventTime(eventId, newTime);
     await ctx.reply(emojify(':thumbsup:'));
   } catch (error) {
-    await ctx.reply('Sorry, due to unexpected error I cannot change event time');
+    await ctx.reply(`Sorry, due to unexpected error I cannot change event time:\n${error.message}`);
     throw error;
   }
 }

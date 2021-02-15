@@ -1,4 +1,6 @@
-const data = require('@begin/data');
+const formatRelative = require('date-fns/formatDistance');
+const data = require('./persistance');
+const { changeDateTime } = require('./date');
 
 class RegimeService {
   constructor(babyId) {
@@ -30,14 +32,7 @@ class RegimeService {
       throw new ReferenceError(`Trying to update time of unknown event with id ${eventId}`);
     }
 
-    // TODO: timezone!
-    const date = new Date(eventToUpdate.at);
-    const chunks = time.split(':').map((v) => Number(v));
-    date.setHours(...chunks);
-
-    console.log('timezone offset = ', date.getTimezoneOffset());
-
-    eventToUpdate.at = date.toISOString();
+    eventToUpdate.at = changeDateTime(eventToUpdate.at, time);
     await data.set({
       ...eventToUpdate,
       table: this.tableName,
@@ -66,7 +61,7 @@ class RegimeService {
       amountOfDreams: events.filter((event) => event.type === 'fallAsleep').length,
       eventsAmount: events.length,
       lastEvent,
-      duration: humanizeTime((new Date(dateTime) - new Date(lastEvent.at)) / 1000),
+      duration: calcDuration(dateTime, lastEvent.at),
     };
   }
 
@@ -75,18 +70,15 @@ class RegimeService {
   }
 }
 
-function humanizeTime(duration) {
-  const time = [
-    Math.floor(duration / 3600),
-    parseInt((duration / 60) % 60, 10),
-    parseInt(duration % 60, 10),
-  ];
+function calcDuration(date, anotherDate) {
+  const end = new Date(date);
+  const start = new Date(anotherDate);
 
-  time.forEach((part, index) => {
-    time[index] = part < 10 ? `0${part}` : part;
-  });
+  if (end.getTime() < start.getTime()) {
+    return 'invalid';
+  }
 
-  return time.join(':');
+  return formatRelative(end, start);
 }
 
 module.exports = RegimeService;

@@ -1,4 +1,4 @@
-const data = require('@begin/data');
+const data = require('./persistance');
 
 const babies = new Map();
 
