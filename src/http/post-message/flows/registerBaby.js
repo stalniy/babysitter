@@ -1,6 +1,6 @@
-const { Scenes } = require('telegraf');
+const { Scenes, Markup } = require('telegraf');
 const deindent = require('deindent');
-const data = require('@begin/data');
+const babies = require('../services/baby');
 
 module.exports = new Scenes.WizardScene(
   'RegisterBaby',
@@ -10,7 +10,7 @@ module.exports = new Scenes.WizardScene(
       name: '',
       birthDate: '',
     };
-    await ctx.reply('What is your baby name?');
+    await ctx.reply('What is your baby name?', Markup.forceReply());
     return await ctx.wizard.next();
   },
   async (ctx) => {
@@ -19,7 +19,7 @@ module.exports = new Scenes.WizardScene(
     await ctx.reply(deindent`
       When was she born?
       Please specify date in the next format: Y-M-D (e.g., 2020-01-02)
-    `);
+    `, Markup.forceReply());
     return await ctx.wizard.next();
   },
   async (ctx) => {
@@ -36,11 +36,7 @@ module.exports = new Scenes.WizardScene(
     }
 
     ctx.wizard.state.baby.birthDate = birthDate;
-    await data.set({
-      table: 'babies',
-      ...ctx.wizard.state.baby,
-    });
-
+    await babies.create(ctx.wizard.state.baby);
     await ctx.wizard.state.onDone();
 
     return await ctx.scene.leave();
