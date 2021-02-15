@@ -22,8 +22,12 @@ function normalizeTime(time) {
     .padEnd(8, ':00');
 }
 
+const TIME_CHUNKS_MAX = [23, 59, 59];
 function isValidTime(time) {
-  return /^\d{1,2}:\d{1,2}(?:\d{1,2})?$/.test(time);
+  const chunks = time.split(':');
+
+  return chunks.length >= 2
+    && chunks.every((chunk, index) => Number(chunk) <= TIME_CHUNKS_MAX[index]);
 }
 
 module.exports = {

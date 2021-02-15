@@ -12,7 +12,7 @@ async function exec(ctx) {
   const newTime = ctx.match[1].trim();
 
   if (!isValidTime(newTime)) {
-    return ctx.replyWithMarkdownV2('The command to change time be of this pattern: *change to h:d:s* (e.g., 11:42 or 11:42:38)');
+    return ctx.replyWithMarkdownV2('The command to change time should be of this pattern: *h:d:s* \\(e\\.g\\., 11:42 or 11:42:38\\)');
   }
 
   const eventId = reply.text.slice(hashIndex + 1);
