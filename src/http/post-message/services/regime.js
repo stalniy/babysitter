@@ -10,7 +10,7 @@ class RegimeService {
   async createEvent(type, payload = null) {
     const event = await data.set({
       ...payload,
-      tableName: this.tableName,
+      table: this.tableName,
       type,
       at: new Date().toISOString(),
     });
