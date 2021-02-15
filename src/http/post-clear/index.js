@@ -1,3 +1,5 @@
+const data = require('@begin/data');
+
 exports.handler = async () => {
   await data.destroy([
     { table: 'regime', key: '1YqkRmZrUB' },
@@ -17,5 +19,5 @@ exports.handler = async () => {
     { table: 'todos', key: 'QNmXRrDAck' },
     { table: 'babies', key: -503512180 },
     { table: 'babies', key: 616953564 },
-  ])
+  ]);
 };
