@@ -14,6 +14,7 @@ if (process.env.NODE_ENV === 'testing') {
   console.log('use polling to receive updates');
   bot.launch();
 } else if (process.env.TL_HOOK_URL) {
+  console.log('set webhook: ', process.env.TL_HOOK_URL);
   bot.telegram.setWebhook(process.env.TL_HOOK_URL);
 }
 

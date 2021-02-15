@@ -1,27 +1,29 @@
 const data = require('@begin/data');
+const arc = require('@architect/functions');
 
-exports.handler = async () => {
-  await data.destroy([
-    { table: 'regime', key: '1YqkRmZrUB' },
-    { table: 'regime', key: '7nzxB2KyTQ' },
-    { table: 'regime', key: '8oAyDPPPsB' },
-    { table: 'regime', key: '9pBmWzmNfz' },
-    { table: 'regime', key: 'B8pyqK9JcP' },
-    { table: 'regime', key: 'MEg668NYUq' },
-    { table: 'regime', key: 'QNmxzLNrH4' },
-    { table: 'regime', key: 'WwvR5gN8SD' },
-    { table: 'regime', key: 'lastFallAsleep.-503512180' },
-    { table: 'regime', key: 'lastFallAsleep.616953564' },
-    { table: 'regime', key: 'lastWakeUp.-503512180' },
-    { table: 'regime', key: 'lvLywRj8uD' },
-    { table: 'regime', key: 'xV504QEWtD' },
-    { table: 'regime', key: 'zB5o3PBASm' },
-    { table: 'todos', key: 'QNmXRrDAck' },
-    { table: 'babies', key: -503512180 },
-    { table: 'regime', key: 'lastWakeUp.616953564' },
-    { table: 'regime', key: 'm26zxZN3Fv' },
-    { table: 'regime', key: 'pRKPPy3PHz' },
-    { table: 'regime', key: 'status.616953564' },
-    { table: 'regime', key: 'wE5NqoGjhP' },
-  ]);
+exports.handler = async (req) => {
+  const body = arc.http.helpers.bodyParser(req);
+
+  if (body.letmedo$ !== process.env.TL_CLEAR_PWD) {
+    return {
+      statusCode: 200,
+    };
+  }
+
+  await clear('regime');
+  await clear('babies');
+
+  return {
+    statusCode: 200,
+  };
 };
+
+async function clear(table) {
+  const items = await data.get({ table });
+  const keys = items.map((item) => ({
+    table: item.table,
+    key: item.key,
+  }));
+
+  await data.destroy(keys);
+}
