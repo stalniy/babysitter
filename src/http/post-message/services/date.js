@@ -13,7 +13,7 @@ function changeDateTime(rawDate, rawTime) {
     timeZone: 'Europe/Kiev',
   });
   const time = rawTime.indexOf(':', 3) === -1 ? `${rawTime}:00` : rawTime;
-  const date = tzDate.split('.').reverse().join('-')
+  const date = tzDate.split('.').reverse().join('-');
   return zonedTimeToUTC(`${date}T${time}`, 'Europe/Kiev');
 }
 
