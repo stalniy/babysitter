@@ -1,3 +1,5 @@
+const intervalToDuration = require('date-fns/intervalToDuration');
+
 function formatTime(utc) {
   const date = utc instanceof Date ? utc : new Date(utc);
   return date.toLocaleTimeString('uk-UA', {
@@ -17,9 +19,13 @@ function timeToUTC(baseDate, time) {
 
 function normalizeTime(time) {
   return time.split(':')
-    .map((chunk) => chunk.padStart(2, '0'))
+    .map(normalizeTimeChunk)
     .join(':')
     .padEnd(8, ':00');
+}
+
+function normalizeTimeChunk(chunk) {
+  return chunk.toString().padStart(2, '0');
 }
 
 const TIME_CHUNKS_MAX = [23, 59, 59];
@@ -30,8 +36,30 @@ function isValidTime(time) {
     && chunks.every((chunk, index) => Number(chunk) <= TIME_CHUNKS_MAX[index]);
 }
 
+function calcDuration(rawDate, anotherRawDate) {
+  const end = new Date(rawDate);
+  const start = new Date(anotherRawDate);
+
+  if (end.getTime() < start.getTime()) {
+    return 'invalid';
+  }
+
+  const duration = intervalToDuration({ end, start });
+  return [duration.hours, duration.minutes, duration.seconds]
+    .map(normalizeTimeChunk)
+    .join(':');
+}
+
+function shiftDate(dateTime, shift) {
+  const now = new Date(dateTime);
+  now.setDate(now.getDate() + shift);
+  return now;
+}
+
 module.exports = {
   formatTime,
   timeToUTC,
   isValidTime,
+  calcDuration,
+  shiftDate,
 };

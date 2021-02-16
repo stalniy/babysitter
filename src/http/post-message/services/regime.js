@@ -1,7 +1,6 @@
-const formatRelative = require('date-fns/formatDistance');
 const data = require('./persistance');
 const Result = require('./result');
-const { formatTime } = require('./date');
+const { formatTime, calcDuration, shiftDate } = require('./date');
 
 const cache = new Map();
 
@@ -31,10 +30,10 @@ class RegimeService {
 
   async createEvent(type, payload = null) {
     const event = await data.set({
+      at: new Date().toISOString(),
       ...payload,
       table: this.tableName,
       type,
-      at: new Date().toISOString(),
     });
 
     if (this.events) {
@@ -77,17 +76,23 @@ class RegimeService {
   }
 
   async getEvents() {
-    this.events = this.events || await data.get({ table: this.tableName });
+    if (!this.events) {
+      const events = await data.get({ table: this.tableName });
+      this.events = events
+        .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+    }
     return this.events;
+  }
+
+  async getLastEvent() {
+    const events = await this.getEvents();
+    return events[events.length - 1];
   }
 
   async getStatusAt(dateTime) {
     const events = await this.getEvents();
-    let lastEvent = events[events.length - 1];
-
-    if (lastEvent && lastEvent.at === dateTime) {
-      lastEvent = events[events.length - 2];
-    }
+    const lastEvent = events[events.length - 1]
+      || await this.forDate(shiftDate(dateTime, -1)).getLastEvent();
 
     if (!lastEvent) {
       return null;
@@ -95,7 +100,6 @@ class RegimeService {
 
     return {
       amountOfDreams: events.filter((event) => event.type === 'fallAsleep').length,
-      eventsAmount: events.length,
       lastEvent,
       duration: calcDuration(dateTime, lastEvent.at),
     };
@@ -109,17 +113,6 @@ class RegimeService {
 function computeTableName(babyId, dateTime) {
   const isoDate = dateTime.toISOString();
   return `regime.${babyId}.${isoDate.slice(0, isoDate.indexOf('T'))}`;
-}
-
-function calcDuration(date, anotherDate) {
-  const end = new Date(date);
-  const start = new Date(anotherDate);
-
-  if (end.getTime() < start.getTime()) {
-    return 'invalid';
-  }
-
-  return formatRelative(end, start);
 }
 
 module.exports = RegimeService;

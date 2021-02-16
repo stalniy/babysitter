@@ -3,8 +3,9 @@ const buttons = require('./buttons');
 const { formatTime } = require('../services/date');
 
 async function exec(ctx) {
-  const event = await ctx.regime.createEvent('wakeUp');
-  const status = await ctx.regime.getStatusAt(event.at);
+  const now = new Date().toISOString();
+  const status = await ctx.regime.getStatusAt(now);
+  const event = await ctx.regime.createEvent('wakeUp', { at: now });
   const prefix = `Woke up at *${formatTime(event.at)}*\\!`;
   const message = status
     ? `${prefix} Sleep time is *${status.duration}* \\#${event.key}`
