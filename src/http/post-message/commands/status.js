@@ -20,7 +20,7 @@ async function exec(ctx) {
 
   ctx.replyWithMarkdownV2(deindent`
     *Status*:
-    ${ctx.baby.name} has been *${status.lastEvent.type}* for *${status.duration}*\\ \\(at ${formatTime(status.lastEvent.at)}\\)\\.
+    ${ctx.baby.name} has been \\#${status.lastEvent.type} for *${status.duration}*\\ \\(at ${formatTime(status.lastEvent.at)}\\)\\.
     Amount of dreams: ${status.amountOfDreams}
   `, Markup.inlineKeyboard([
     [status.lastEvent.type === 'wakeUp' ? actions.sleep.button : actions.wakeUp.button],

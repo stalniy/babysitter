@@ -108,6 +108,20 @@ class RegimeService {
   async getCurrentStatus() {
     return this.getStatusAt(new Date().toISOString());
   }
+
+  async getEventsStats() {
+    const events = await this.getEvents();
+
+    return events.map((event, index) => {
+      const startDate = index + 1 < events.length
+        ? events[index + 1].at
+        : new Date().toISOString();
+      return {
+        ...event,
+        duration: calcDuration(startDate, event.at),
+      };
+    });
+  }
 }
 
 function computeTableName(babyId, dateTime) {

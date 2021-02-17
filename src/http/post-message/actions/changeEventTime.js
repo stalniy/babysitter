@@ -23,7 +23,10 @@ async function exec(ctx) {
   if (result.type === 'error') {
     await ctx.reply(result.message);
   } else {
-    await ctx.reply(emojify(':thumbsup:'));
+    await ctx.reply(
+      `The time was successfully changed ${emojify(':thumbsup:')}.\n`
+      + 'Do you want to check the /status?',
+    );
   }
 }
 

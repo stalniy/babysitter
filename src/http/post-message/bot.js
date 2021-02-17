@@ -5,21 +5,16 @@ const RegimeService = require('./services/regime');
 const babies = require('./services/baby');
 
 module.exports = function createBot(token, options) {
-  const bot = new Telegraf(token, {
-    // telegram: {
-    //   webhookReply: true,
-    //   webhook: true,
-    // },
-  });
+  const bot = new Telegraf(token);
 
   bot.use(session());
   bot.use(stage);
   bot.use(async (ctx, next) => {
     ctx.baby = await babies.get(ctx.chat.id);
-    console.dir({
+    console.log({
       message: ctx.message,
       hasBaby: !!ctx.baby,
-    }, { depth: null });
+    });
 
     if (!ctx.baby && ctx.message && ctx.message.text && !ctx.message.text.trim().startsWith('/start')) {
       ctx.reply(deindent`
