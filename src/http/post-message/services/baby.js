@@ -10,7 +10,7 @@ async function get(id) {
       TableName: 'babysitter_baby',
       Key: marshall({ id }),
     });
-    baby = unmarshall(response.Item);
+    baby = response.Item ? unmarshall(response.Item) : null;
     babies.set(id, baby);
   }
 
