@@ -1,13 +1,16 @@
-const { db, marshall, unmarshall } = require('./db');
+const {
+  db, marshall, unmarshall, tableName,
+} = require('./db');
 
 const babies = new Map();
+const TableName = tableName('babysitter_baby');
 
 async function get(id) {
   let baby = babies.get(id);
 
   if (!baby) {
     const response = await db.getItem({
-      TableName: 'babysitter_baby',
+      TableName,
       Key: marshall({ id }),
     });
     baby = response.Item ? unmarshall(response.Item) : null;
@@ -19,7 +22,7 @@ async function get(id) {
 
 async function create(baby) {
   await db.putItem({
-    TableName: 'babysitter_baby',
+    TableName,
     Item: marshall(baby),
   });
   babies.set(baby.id, baby);

@@ -1,10 +1,12 @@
 const { nanoid } = require('nanoid');
-const { db, marshall, unmarshall } = require('./db');
+const {
+  db, marshall, unmarshall, tableName,
+} = require('./db');
 const Result = require('./result');
 const { formatTime, calcDuration, shiftDate } = require('./date');
 
 const cache = new Map();
-const TableName = 'babysitter_regime';
+const TableName = tableName('babysitter_regime');
 
 class RegimeService {
   static for(babyId, dateTime = null) {

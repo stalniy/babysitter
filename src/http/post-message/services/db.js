@@ -9,8 +9,14 @@ const db = new DynamoDB({
   },
 });
 
+function tableName(name) {
+  const suffix = process.env.NODE_ENV === 'production' ? '' : '_test';
+  return name + suffix;
+}
+
 module.exports = {
   db,
   marshall,
   unmarshall,
+  tableName,
 };
