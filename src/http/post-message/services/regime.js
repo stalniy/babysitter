@@ -1,26 +1,30 @@
-const data = require('./persistance');
+const { nanoid } = require('nanoid');
+const { db, marshall, unmarshall } = require('./db');
 const Result = require('./result');
 const { formatTime, calcDuration, shiftDate } = require('./date');
 
 const cache = new Map();
+const TableName = 'babysitter_regime';
 
 class RegimeService {
   static for(babyId, dateTime = null) {
     const now = dateTime || new Date();
-    const tableName = computeTableName(babyId, now);
+    const key = computeKey(babyId, now);
+    const id = `${key.babyId}.${key.date}`;
 
-    if (!cache.has(tableName)) {
-      const service = new RegimeService(babyId, now);
-      cache.set(tableName, service);
+    if (!cache.has(id)) {
+      const service = new RegimeService(key);
+      cache.set(id, service);
       return service;
     }
 
-    return cache.get(tableName);
+    return cache.get(id);
   }
 
-  constructor(babyId, dateTime) {
-    this.babyId = babyId;
-    this.tableName = `regime.${babyId}.${dateTime.toISOString().split('T')[0]}`;
+  constructor(key) {
+    this.babyId = key.babyId;
+    this.key = key;
+    this.serializedKey = marshall(key);
     this.events = null;
   }
 
@@ -29,11 +33,23 @@ class RegimeService {
   }
 
   async createEvent(type, payload = null) {
-    const event = await data.set({
-      at: new Date().toISOString(),
+    const event = {
+      id: nanoid(3),
+      at: Date.now(),
       ...payload,
-      table: this.tableName,
       type,
+    };
+    await db.updateItem({
+      TableName,
+      Key: this.serializedKey,
+      UpdateExpression: 'SET #ei = list_append(if_not_exists(#ei, :empty), :ei)',
+      ExpressionAttributeNames: {
+        '#ei': 'events',
+      },
+      ExpressionAttributeValues: marshall({
+        ':ei': [event],
+        ':empty': [],
+      }),
     });
 
     if (this.events) {
@@ -45,15 +61,16 @@ class RegimeService {
 
   async setEventTime(eventId, newDate) {
     const events = await this.getEvents();
-    const eventToUpdateIdx = events.findIndex((event) => event.key === eventId);
+    const eventToUpdateIdx = events.findIndex((event) => event.id === eventId);
 
     if (eventToUpdateIdx === -1) {
       return Result.error(`Trying to update time of unknown event with id ${eventId}`);
     }
 
+    const newTimestamp = newDate.getTime();
     const prevEvent = events[eventToUpdateIdx - 1];
-    const isInvalidDate = newDate.getTime() > Date.now()
-      || prevEvent && newDate.getTime() < new Date(prevEvent.at).getTime();
+    const isInvalidDate = newTimestamp > Date.now()
+      || prevEvent && newTimestamp < new Date(prevEvent.at).getTime();
     if (isInvalidDate) {
       const now = formatTime(Date.now());
       const message = prevEvent
@@ -63,23 +80,34 @@ class RegimeService {
     }
 
     const eventToUpdate = events[eventToUpdateIdx];
-    const newIsoDate = newDate.toISOString();
-    await data.set({
-      ...eventToUpdate,
-      at: newIsoDate,
-      table: this.tableName,
-      key: eventId,
+    await db.updateItem({
+      TableName,
+      Key: this.serializedKey,
+      UpdateExpression: `SET #ei[${eventToUpdateIdx}].#at = :newTime`,
+      ConditionExpression: `#ei[${eventToUpdateIdx}].id = :id`,
+      ExpressionAttributeNames: {
+        '#ei': 'events',
+        '#at': 'at',
+      },
+      ExpressionAttributeValues: marshall({
+        ':newTime': newTimestamp,
+        ':id': eventId,
+      }),
     });
-    eventToUpdate.at = newIsoDate;
+    eventToUpdate.at = newTimestamp;
 
-    return Result.value();
+    return Result.value(eventToUpdate);
   }
 
   async getEvents() {
     if (!this.events) {
-      const events = await data.get({ table: this.tableName });
-      this.events = events
-        .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+      const response = await db.getItem({
+        TableName,
+        Key: this.serializedKey,
+      });
+      this.events = response.Item
+        ? unmarshall(response.Item).events
+        : [];
     }
     return this.events;
   }
@@ -106,7 +134,7 @@ class RegimeService {
   }
 
   async getCurrentStatus() {
-    return this.getStatusAt(new Date().toISOString());
+    return this.getStatusAt(Date.now());
   }
 
   async getEventsStats() {
@@ -115,7 +143,7 @@ class RegimeService {
     return events.map((event, index) => {
       const startDate = index + 1 < events.length
         ? events[index + 1].at
-        : new Date().toISOString();
+        : Date.now();
       return {
         ...event,
         duration: calcDuration(startDate, event.at),
@@ -124,9 +152,12 @@ class RegimeService {
   }
 }
 
-function computeTableName(babyId, dateTime) {
+function computeKey(babyId, dateTime) {
   const isoDate = dateTime.toISOString();
-  return `regime.${babyId}.${isoDate.slice(0, isoDate.indexOf('T'))}`;
+  return {
+    babyId,
+    date: isoDate.slice(0, isoDate.indexOf('T')),
+  };
 }
 
 module.exports = RegimeService;

@@ -1,4 +1,4 @@
-const data = require('./persistance');
+const { db, marshall, unmarshall } = require('./db');
 
 const babies = new Map();
 
@@ -6,21 +6,23 @@ async function get(id) {
   let baby = babies.get(id);
 
   if (!baby) {
-    baby = await data.get({
-      table: 'babies',
-      key: id,
+    const response = await db.getItem({
+      TableName: 'babysitter_baby',
+      Key: marshall({ id }),
     });
+    baby = unmarshall(response.Item);
     babies.set(id, baby);
   }
 
   return baby;
 }
 
-async function create(payload) {
-  await data.set({
-    table: 'babies',
-    ...payload,
+async function create(baby) {
+  await db.putItem({
+    TableName: 'babysitter_baby',
+    Item: marshall(baby),
   });
+  babies.set(baby.id, baby);
 }
 
 module.exports = {

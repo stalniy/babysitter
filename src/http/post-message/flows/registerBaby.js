@@ -6,7 +6,7 @@ module.exports = new Scenes.WizardScene(
   'RegisterBaby',
   async (ctx) => {
     ctx.wizard.state.baby = {
-      key: ctx.chat.id,
+      id: ctx.chat.id,
       name: '',
       birthDate: '',
     };
