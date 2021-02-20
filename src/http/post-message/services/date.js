@@ -1,5 +1,3 @@
-const intervalToDuration = require('date-fns/intervalToDuration');
-
 function formatTime(utc) {
   const date = utc instanceof Date ? utc : new Date(utc);
   return date.toLocaleTimeString('uk-UA', {
@@ -44,10 +42,27 @@ function calcDuration(rawDate, anotherRawDate) {
     return 'invalid';
   }
 
-  const duration = intervalToDuration({ end, start });
+  const duration = intervalToDuration(start, end);
   return [duration.hours, duration.minutes, duration.seconds]
     .map(normalizeTimeChunk)
     .join(':');
+}
+
+function intervalToDuration(start, end) {
+  const diffInSeconds = (end.getTime() - start.getTime()) / 1000;
+  const hours = Math.floor(diffInSeconds / 3600);
+  const minutes = Math.floor((diffInSeconds % 3600) / 60);
+  let seconds = end.getSeconds() - start.getSeconds();
+
+  if (seconds < 0) {
+    seconds += 60;
+  }
+
+  return {
+    hours,
+    minutes,
+    seconds,
+  };
 }
 
 function shiftDate(dateTime, shift) {
