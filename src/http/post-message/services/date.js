@@ -43,26 +43,29 @@ function isValidTime(time) {
 function calcDuration(rawDate, anotherRawDate) {
   const end = new Date(rawDate);
   const start = new Date(anotherRawDate);
+  const diff = end.getTime() - start.getTime();
 
-  if (end.getTime() < start.getTime()) {
-    return 'invalid';
+  if (diff < 0) {
+    throw new Error(`Duration end date should be greater or equal to start date: ${JSON.stringify({
+      end,
+      start,
+    })}`);
   }
 
-  const duration = intervalToDuration(start, end);
-  return [duration.hours, duration.minutes, duration.seconds]
-    .map(normalizeTimeChunk)
-    .join(':');
+  return diff;
 }
 
-function intervalToDuration(start, end) {
-  const diffInSeconds = (end.getTime() - start.getTime()) / 1000;
+function formatDuration(duration) {
+  const d = intervalToDuration(duration);
+  const n = normalizeTimeChunk;
+  return `${n(d.hours)}:${n(d.minutes)}:${n(d.seconds)}`;
+}
+
+function intervalToDuration(diffInMs) {
+  const diffInSeconds = diffInMs / 1000;
   const hours = Math.floor(diffInSeconds / 3600);
   const minutes = Math.floor((diffInSeconds % 3600) / 60);
-  let seconds = end.getSeconds() - start.getSeconds();
-
-  if (seconds < 0) {
-    seconds += 60;
-  }
+  const seconds = Math.ceil(diffInSeconds - minutes * 60 - hours * 3600);
 
   return {
     hours,
@@ -93,6 +96,7 @@ function todayInUserTz() {
 
 module.exports = {
   formatTime,
+  formatDuration,
   timeToUTC,
   isValidTime,
   calcDuration,

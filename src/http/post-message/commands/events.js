@@ -1,4 +1,4 @@
-const { formatTime } = require('../services/date');
+const { formatTime, formatDuration } = require('../services/date');
 
 async function exec(ctx) {
   const events = await ctx.regime.getEventsStats();
@@ -8,7 +8,8 @@ async function exec(ctx) {
   }
 
   const response = events
-    .map((event) => `- #${event.type} at ${formatTime(event.at)} (duration: ${event.duration})`)
+    .map((event) => `- #${event.type} at ${formatTime(event.at)}`
+      + `(duration: ${formatDuration(event.duration)})`)
     .join('\n');
 
   ctx.reply(`Events for today:\n${response}`);

@@ -147,9 +147,11 @@ class RegimeService {
     }
 
     return {
-      amountOfDreams: events.filter((event) => event.type === 'fallAsleep').length,
-      lastEvent,
-      duration: calcDuration(Date.now(), lastEvent.at),
+      summary: calcSummary(events),
+      lastEvent: {
+        ...lastEvent,
+        duration: calcDuration(Date.now(), lastEvent.at),
+      },
     };
   }
 
@@ -166,6 +168,25 @@ class RegimeService {
       };
     });
   }
+}
+
+function calcSummary(events) {
+  const summary = {};
+
+  events.forEach((event, index) => {
+    const startDate = index + 1 < events.length
+      ? events[index + 1].at
+      : Date.now();
+
+    summary[event.type] = summary[event.type] || {
+      amount: 0,
+      duration: 0,
+    };
+    summary[event.type].amount++;
+    summary[event.type].duration += calcDuration(startDate, event.at);
+  });
+
+  return summary;
 }
 
 module.exports = RegimeService;

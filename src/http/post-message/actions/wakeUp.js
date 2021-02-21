@@ -1,5 +1,5 @@
 const buttons = require('./buttons');
-const { formatTime } = require('../services/date');
+const { formatTime, formatDuration } = require('../services/date');
 
 async function exec(ctx) {
   const status = await ctx.regime.getStatus();
@@ -16,7 +16,7 @@ async function exec(ctx) {
   const event = await ctx.regime.createEvent('wakeUp');
   const prefix = `Woke up at <b>${formatTime(event.at)}</b>!`;
   const message = status
-    ? `${prefix} Sleep time is <b>${status.duration}</b> #${event.id}`
+    ? `${prefix} Sleep time is <b>${formatDuration(status.lastEvent.duration)}</b> #${event.id}`
     : `${prefix} #${event.id}`;
 
   await ctx.replyWithTmpButtons(message, [
