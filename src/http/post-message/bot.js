@@ -2,7 +2,7 @@ const { Telegraf, session } = require('telegraf');
 const { Context, removeTmpButtons } = require('./Context');
 const { stage } = require('./flows');
 const RegimeService = require('./services/regime');
-const { todayInUserTz } = require('./services/date');
+const { dateRangeInUserTz } = require('./services/date');
 const babies = require('./services/baby');
 
 module.exports = function createBot(token, options) {
@@ -28,7 +28,7 @@ module.exports = function createBot(token, options) {
       return;
     }
 
-    ctx.regime = RegimeService.for(ctx.chat.id, todayInUserTz());
+    ctx.regime = RegimeService.for(ctx.chat.id, dateRangeInUserTz());
     await next();
   });
   const commandsInfo = [];

@@ -7,6 +7,12 @@ function formatTime(utc) {
   });
 }
 
+function formatDate(date) {
+  return date.toLocaleDateString('uk-UA', {
+    timeZone,
+  });
+}
+
 function changeTime(rawDate, time) {
   return rawDate.replace(/\d{1,2}:\d{1,2}:\d{1,2}/, normalizeTime(time));
 }
@@ -19,6 +25,24 @@ function timeToUTC(baseDate, time) {
   });
 
   return new Date(changeTime(tzDate, time));
+}
+
+function dateToUTCRange(date) {
+  const now = new Date();
+  const tzNowDate = now.toLocaleDateString('en-US', {
+    timeZone,
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+    timeZoneName: 'short',
+  });
+  const [year, month, day] = date.split('-');
+  const tz = tzNowDate.slice(tzNowDate.indexOf(',') + 1);
+
+  return {
+    start: new Date(`${month}/${day}/${year}, 00:00:00${tz}`),
+    end: new Date(`${month}/${day}/${year}, 23:59:59${tz}`),
+  };
 }
 
 function normalizeTime(time) {
@@ -80,26 +104,27 @@ function shiftDate(date, shiftDays) {
   return shifted;
 }
 
-function todayInUserTz() {
-  const today = new Date();
-  const dateInUserTz = today.toLocaleString('en-US', {
+function dateRangeInUserTz(date = new Date()) {
+  const dateTz = date.toLocaleString('en-US', {
     timeZone,
     timeZoneName: 'short',
     hour12: false,
   });
 
   return {
-    start: new Date(changeTime(dateInUserTz, '00:00:00')),
-    end: new Date(changeTime(dateInUserTz, '23:59:59')),
+    start: new Date(changeTime(dateTz, '00:00:00')),
+    end: new Date(changeTime(dateTz, '23:59:59')),
   };
 }
 
 module.exports = {
   formatTime,
   formatDuration,
+  formatDate,
   timeToUTC,
+  dateToUTCRange,
   isValidTime,
   calcDuration,
   shiftDate,
-  todayInUserTz,
+  dateRangeInUserTz,
 };
