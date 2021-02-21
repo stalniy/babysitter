@@ -4,34 +4,28 @@ const {
 } = require('./db');
 const Result = require('./result');
 const { formatTime, calcDuration, shiftDate } = require('./date');
+const partiql = require('./partiql');
 
 const cache = new Map();
 const TableName = tableName('babysitter_regime');
 
 class RegimeService {
-  static for(babyId, dateTime = null) {
-    const now = dateTime || new Date();
-    const key = computeKey(babyId, now);
-    const id = `${key.babyId}.${key.date}`;
+  static for(babyId, range) {
+    const key = `${babyId}-${range.start.getTime()}-${range.end.getTime()}`;
 
-    if (!cache.has(id)) {
-      const service = new RegimeService(key);
-      cache.set(id, service);
+    if (!cache.has(key)) {
+      const service = new RegimeService(babyId, range);
+      cache.set(key, service);
       return service;
     }
 
-    return cache.get(id);
+    return cache.get(key);
   }
 
-  constructor(key) {
-    this.babyId = key.babyId;
-    this.key = key;
-    this.serializedKey = marshall(key);
+  constructor(babyId, dateRange) {
+    this.babyId = babyId;
+    this.dateRange = dateRange;
     this.events = null;
-  }
-
-  forDate(dateTime) {
-    return RegimeService.for(this.babyId, dateTime);
   }
 
   async createEvent(type, payload = null) {
@@ -40,18 +34,16 @@ class RegimeService {
       at: Date.now(),
       ...payload,
       type,
+      babyId: this.babyId,
     };
-    await db.updateItem({
+
+    await db.putItem({
       TableName,
-      Key: this.serializedKey,
-      UpdateExpression: 'SET #ei = list_append(if_not_exists(#ei, :empty), :ei)',
-      ExpressionAttributeNames: {
-        '#ei': 'events',
-      },
-      ExpressionAttributeValues: marshall({
-        ':ei': [event],
-        ':empty': [],
+      Key: marshall({
+        babyId: this.babyId,
+        at: event.at,
       }),
+      Item: marshall(event),
     });
 
     if (this.events) {
@@ -82,20 +74,22 @@ class RegimeService {
     }
 
     const eventToUpdate = events[eventToUpdateIdx];
-    await db.updateItem({
-      TableName,
-      Key: this.serializedKey,
-      UpdateExpression: `SET #ei[${eventToUpdateIdx}].#at = :newTime`,
-      ConditionExpression: `#ei[${eventToUpdateIdx}].id = :id`,
-      ExpressionAttributeNames: {
-        '#ei': 'events',
-        '#at': 'at',
-      },
-      ExpressionAttributeValues: marshall({
-        ':newTime': newTimestamp,
-        ':id': eventId,
-      }),
-    });
+    const queries = [
+      partiql`
+        DELETE FROM "${partiql.raw(TableName)}"
+        WHERE "babyId" = ${this.babyId}
+          AND "at" = ${eventToUpdate.at}
+          AND "id" = ${eventToUpdate.id}
+      `,
+      partiql`
+        INSERT INTO "${partiql.raw(TableName)}" VALUE ${{
+  ...eventToUpdate,
+  at: newTimestamp,
+  babyId: this.babyId,
+}}
+      `,
+    ];
+    await db.executeTransaction({ TransactStatements: queries });
     eventToUpdate.at = newTimestamp;
 
     return Result.value(eventToUpdate);
@@ -103,26 +97,50 @@ class RegimeService {
 
   async getEvents() {
     if (!this.events) {
-      const response = await db.getItem({
-        TableName,
-        Key: this.serializedKey,
-      });
-      this.events = response.Item
-        ? unmarshall(response.Item).events
-        : [];
+      this.events = await this.getEventsFor(this.dateRange);
     }
     return this.events;
   }
 
-  async getLastEvent() {
-    const events = await this.getEvents();
-    return events[events.length - 1];
+  async getEventsFor(dateRange, options = {}) {
+    const start = dateRange.start || new Date(1970);
+    const end = dateRange.end || new Date();
+    const response = await db.query({
+      TableName,
+      ProjectionExpression: 'id, #eventType, #createdAt',
+      KeyConditionExpression: 'babyId = :babyId AND #createdAt BETWEEN :start AND :end',
+      ExpressionAttributeNames: {
+        '#createdAt': 'at',
+        '#eventType': 'type',
+      },
+      ExpressionAttributeValues: marshall({
+        ':babyId': this.babyId,
+        ':start': start.getTime(),
+        ':end': end.getTime(),
+      }),
+      ScanIndexForward: 'ascending' in options ? options.ascending : true,
+      Limit: options.limit,
+    });
+
+    return response.Items
+      ? response.Items.map(unmarshall)
+      : [];
   }
 
-  async getStatusAt(dateTime) {
+  async getLastYesterdayEvent() {
+    const events = await this.getEventsFor({
+      start: shiftDate(this.dateRange.start, -1),
+      end: this.dateRange.start,
+      ascending: false,
+      limit: 1,
+    });
+    return events[0];
+  }
+
+  async getStatus() {
     const events = await this.getEvents();
     const lastEvent = events[events.length - 1]
-      || await this.forDate(shiftDate(dateTime, -1)).getLastEvent();
+      || await this.getLastYesterdayEvent();
 
     if (!lastEvent) {
       return null;
@@ -131,12 +149,8 @@ class RegimeService {
     return {
       amountOfDreams: events.filter((event) => event.type === 'fallAsleep').length,
       lastEvent,
-      duration: calcDuration(dateTime, lastEvent.at),
+      duration: calcDuration(Date.now(), lastEvent.at),
     };
-  }
-
-  async getCurrentStatus() {
-    return this.getStatusAt(Date.now());
   }
 
   async getEventsStats() {
@@ -152,14 +166,6 @@ class RegimeService {
       };
     });
   }
-}
-
-function computeKey(babyId, dateTime) {
-  const isoDate = dateTime.toISOString();
-  return {
-    babyId,
-    date: isoDate.slice(0, isoDate.indexOf('T')),
-  };
 }
 
 module.exports = RegimeService;

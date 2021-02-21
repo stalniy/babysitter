@@ -8,7 +8,7 @@ async function exec(ctx) {
   }
 
   const response = events
-    .map((event) => `- #${event.type}\tat ${formatTime(event.at)} (duration: ${event.duration})`)
+    .map((event) => `- #${event.type} at ${formatTime(event.at)} (duration: ${event.duration})`)
     .join('\n');
 
   ctx.reply(`Events for today:\n${response}`);

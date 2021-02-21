@@ -1,7 +1,7 @@
 const { Telegraf, session } = require('telegraf');
-const deindent = require('deindent');
 const { stage } = require('./flows');
 const RegimeService = require('./services/regime');
+const { todayInUserTz } = require('./services/date');
 const babies = require('./services/baby');
 
 module.exports = function createBot(token, options) {
@@ -17,14 +17,14 @@ module.exports = function createBot(token, options) {
     });
 
     if (!ctx.baby && ctx.message && ctx.message.text && !ctx.message.text.trim().startsWith('/start')) {
-      ctx.reply(deindent`
-        This chat has not be associated with any baby.
-        Please use /start command to register a baby.
-      `);
+      ctx.reply(
+        'This chat has not be associated with any baby.'
+        + 'Please use /start command to register a baby.',
+      );
       return;
     }
 
-    ctx.regime = RegimeService.for(ctx.chat.id);
+    ctx.regime = RegimeService.for(ctx.chat.id, todayInUserTz());
     await next();
   });
   const commandsInfo = [];

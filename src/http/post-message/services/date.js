@@ -1,18 +1,24 @@
+const timeZone = 'Europe/Kiev';
+
 function formatTime(utc) {
   const date = utc instanceof Date ? utc : new Date(utc);
   return date.toLocaleTimeString('uk-UA', {
-    timeZone: 'Europe/Kiev',
+    timeZone,
   });
+}
+
+function changeTime(rawDate, time) {
+  return rawDate.replace(/\d{1,2}:\d{1,2}:\d{1,2}/, normalizeTime(time));
 }
 
 function timeToUTC(baseDate, time) {
   const tzDate = baseDate.toLocaleString('en-US', {
-    timeZone: 'Europe/Kiev',
+    timeZone,
     timeZoneName: 'short',
     hour12: false,
-  }).replace(/\d{1,2}:\d{1,2}:\d{1,2}/, normalizeTime(time));
+  });
 
-  return new Date(tzDate);
+  return new Date(changeTime(tzDate, time));
 }
 
 function normalizeTime(time) {
@@ -65,10 +71,24 @@ function intervalToDuration(start, end) {
   };
 }
 
-function shiftDate(dateTime, shift) {
-  const now = new Date(dateTime);
-  now.setDate(now.getDate() + shift);
-  return now;
+function shiftDate(date, shiftDays) {
+  const shifted = new Date(date.getTime());
+  shifted.setDate(shifted.getDate() + shiftDays);
+  return shifted;
+}
+
+function todayInUserTz() {
+  const today = new Date();
+  const dateInUserTz = today.toLocaleString('en-US', {
+    timeZone,
+    timeZoneName: 'short',
+    hour12: false,
+  });
+
+  return {
+    start: new Date(changeTime(dateInUserTz, '00:00:00')),
+    end: new Date(changeTime(dateInUserTz, '23:59:59')),
+  };
 }
 
 module.exports = {
@@ -77,4 +97,5 @@ module.exports = {
   isValidTime,
   calcDuration,
   shiftDate,
+  todayInUserTz,
 };

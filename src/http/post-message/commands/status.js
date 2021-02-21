@@ -3,7 +3,7 @@ const actions = require('../actions');
 const { formatTime } = require('../services/date');
 
 async function exec(ctx) {
-  const status = await ctx.regime.getCurrentStatus();
+  const status = await ctx.regime.getStatus();
   const reply = { text: '*Status*:\n', keyboard: null };
 
   if (status) {
