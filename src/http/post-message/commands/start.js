@@ -1,5 +1,4 @@
 const deindent = require('deindent');
-const { Markup } = require('telegraf');
 const actions = require('../actions');
 
 async function exec(ctx) {
@@ -13,12 +12,12 @@ async function exec(ctx) {
     `);
     await ctx.scene.enter('RegisterBaby', {
       async onDone() {
-        await ctx.reply('Woohooo! We are done.', Markup.inlineKeyboard([
+        await ctx.replyWithTmpButtons('Woohooo! We are done.', [
           [
             actions.wakeUp.button,
             actions.sleep.button,
           ],
-        ]));
+        ]);
       },
     });
   } else {

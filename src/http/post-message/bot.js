@@ -1,15 +1,19 @@
 const { Telegraf, session } = require('telegraf');
+const { Context, removeTmpButtons } = require('./Context');
 const { stage } = require('./flows');
 const RegimeService = require('./services/regime');
 const { todayInUserTz } = require('./services/date');
 const babies = require('./services/baby');
 
 module.exports = function createBot(token, options) {
-  const bot = new Telegraf(token);
+  const bot = new Telegraf(token, {
+    contextType: Context,
+  });
 
   bot.use(session());
   bot.use(stage);
   bot.use(async (ctx, next) => {
+    await removeTmpButtons(ctx);
     ctx.baby = await babies.get(ctx.chat.id);
     console.log({
       message: ctx.message,

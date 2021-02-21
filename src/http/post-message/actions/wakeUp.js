@@ -1,4 +1,3 @@
-const { Markup } = require('telegraf');
 const buttons = require('./buttons');
 const { formatTime } = require('../services/date');
 
@@ -15,15 +14,14 @@ async function exec(ctx) {
   }
 
   const event = await ctx.regime.createEvent('wakeUp');
-  const prefix = `Woke up at *${formatTime(event.at)}*\\!`;
+  const prefix = `Woke up at <b>${formatTime(event.at)}</b>!`;
   const message = status
-    ? `${prefix} Sleep time is *${status.duration}* \\#${event.id}`
-    : `${prefix} \\#${event.id}`;
+    ? `${prefix} Sleep time is <b>${status.duration}</b> #${event.id}`
+    : `${prefix} #${event.id}`;
 
-  await ctx.editMessageReplyMarkup(Markup.inlineKeyboard([]));
-  await ctx.replyWithMarkdownV2(message, Markup.inlineKeyboard([
+  await ctx.replyWithTmpButtons(message, [
     [buttons.sleep],
-  ]));
+  ]);
 }
 
 module.exports = {
