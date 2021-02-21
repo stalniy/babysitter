@@ -9,7 +9,8 @@ const {
 const RegimeService = require('../services/regime');
 
 async function exec(ctx) {
-  const rawDate = ctx.message.text.trim().replace(/^\/events\s*/, '');
+  const cmd = ctx.message.entities[0];
+  const rawDate = ctx.message.text.slice(cmd.offset + cmd.length).trim();
   let dateRange = parseDate(rawDate);
 
   if (rawDate && !dateRange) {
@@ -44,7 +45,7 @@ function parseDate(maybeDate) {
 }
 
 function parseRelativeDate(date) {
-  const matches = date.trim().match(/^(-\d+)\s+days?$/);
+  const matches = date.trim().match(/^(-\d+)\s*days?$/);
 
   if (!matches) {
     return null;

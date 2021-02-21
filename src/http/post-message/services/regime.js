@@ -131,6 +131,7 @@ class RegimeService {
     const events = await this.getEventsFor({
       start: shiftDate(this.dateRange.start, -1),
       end: this.dateRange.start,
+    }, {
       ascending: false,
       limit: 1,
     });
