@@ -1,30 +1,31 @@
-const deindent = require('deindent');
 const { Markup } = require('telegraf');
 const actions = require('../actions');
 const { formatTime } = require('../services/date');
 
 async function exec(ctx) {
   const status = await ctx.regime.getCurrentStatus();
+  const reply = { text: '*Status*:\n', keyboard: null };
 
-  if (!status) {
-    return ctx.replyWithMarkdownV2(deindent`
-      *Status*:
-      Cannot provide status because you have never tracked either wake up or sleep\\.
-    `, Markup.inlineKeyboard([
-      [
-        actions.wakeUp.button,
-        actions.sleep.button,
-      ],
-    ]));
+  if (status) {
+    reply.text += renderStatus(ctx.baby, status);
+    reply.keyboard = Markup.inlineKeyboard([
+      status.lastEvent.type === 'wakeUp' ? actions.sleep.button : actions.wakeUp.button,
+    ]);
+  } else {
+    reply.text += 'Cannot provide status because there are no events\\.';
+    reply.keyboard = Markup.inlineKeyboard([
+      actions.wakeUp.button,
+      actions.sleep.button,
+    ]);
   }
 
-  ctx.replyWithMarkdownV2(deindent`
-    *Status*:
-    ${ctx.baby.name} has been \\#${status.lastEvent.type} for *${status.duration}*\\ \\(at ${formatTime(status.lastEvent.at)}\\)\\.
-    Amount of dreams: ${status.amountOfDreams}
-  `, Markup.inlineKeyboard([
-    [status.lastEvent.type === 'wakeUp' ? actions.sleep.button : actions.wakeUp.button],
-  ]));
+  await ctx.replyWithMarkdownV2(reply.text, reply.keyboard);
+}
+
+function renderStatus(baby, status) {
+  return `${baby.name} has been \\#${status.lastEvent.type} for *${status.duration}*`
+    + `\\(at ${formatTime(status.lastEvent.at)}\\)\\.\n`
+    + `Amount of dreams: ${status.amountOfDreams}`;
 }
 
 module.exports = {
