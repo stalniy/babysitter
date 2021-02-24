@@ -15,10 +15,12 @@ module.exports = function createBot(token, options) {
   bot.use(async (ctx, next) => {
     await removeTmpButtons(ctx);
     ctx.baby = await babies.get(ctx.chat.id);
-    console.log({
-      message: ctx.message,
-      hasBaby: !!ctx.baby,
-    });
+    const babyName = ctx.baby && ctx.baby.name || 'unknown';
+
+    console.log(`Start (${ctx.update.update_id}) --------------------------------`);
+    console.log(`Incoming Message: ${ctx.updateType} for child: ${babyName}`);
+    console.log(ctx.message || ctx.callbackQuery);
+    console.log(`End (${ctx.update.update_id}) --------------------------------`);
 
     if (!ctx.baby && ctx.message && ctx.message.text && !ctx.message.text.trim().startsWith('/start')) {
       ctx.reply(
