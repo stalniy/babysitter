@@ -11,9 +11,14 @@ class TLContext extends Context {
 
     if (buttons && buttons.length) {
       stateForTmpButtons.message = message;
-      stateForTmpButtons.timerId = setTimeout(() => {
-        removeTmpButtons(this).catch(console.error);
-      }, 4000);
+      await new Promise((resolve) => {
+        stateForTmpButtons.resolve = resolve;
+        stateForTmpButtons.timerId = setTimeout(() => {
+          removeTmpButtons(this)
+            .catch(console.error)
+            .then(resolve);
+        }, 5000);
+      });
     }
   }
 }
@@ -21,12 +26,14 @@ class TLContext extends Context {
 async function removeTmpButtons(ctx) {
   if (stateForTmpButtons.message) {
     clearTimeout(stateForTmpButtons.timerId);
+    stateForTmpButtons.resolve();
     await ctx.telegram.editMessageReplyMarkup(
       ctx.chat.id,
       stateForTmpButtons.message.message_id,
       undefined,
       Markup.inlineKeyboard([]),
     );
+    stateForTmpButtons.resolve = null;
     stateForTmpButtons.message = null;
     stateForTmpButtons.timerId = 0;
   }

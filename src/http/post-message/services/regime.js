@@ -97,7 +97,7 @@ class RegimeService {
 
   async getEvents() {
     if (!this.events) {
-      this.events = await this.getEventsFor(this.dateRange);
+      this.events = await this.getDayRelatedEvents();
     }
     return this.events;
   }
@@ -127,21 +127,41 @@ class RegimeService {
       : [];
   }
 
-  async getLastYesterdayEvent() {
-    const events = await this.getEventsFor({
+  async getLastPrevDayEvents(limit) {
+    return await this.getEventsFor({
       start: shiftDate(this.dateRange.start, -1),
       end: this.dateRange.start,
     }, {
       ascending: false,
-      limit: 1,
+      limit,
     });
-    return events[0];
+  }
+
+  async getFirstNextDayEvents(limit) {
+    if (this.dateRange.end.getDate() === new Date().getDate()) {
+      return [];
+    }
+
+    return await this.getEventsFor({
+      start: this.dateRange.end,
+      end: shiftDate(this.dateRange.end, +1),
+    }, {
+      limit,
+    });
+  }
+
+  async getDayRelatedEvents() {
+    const [prevDay, events, nextDay] = await Promise.all([
+      this.getLastPrevDayEvents(1),
+      this.getEventsFor(this.dateRange),
+      this.getFirstNextDayEvents(1)
+    ]);
+    return prevDay.concat(events, nextDay);
   }
 
   async getStatus() {
     const events = await this.getEvents();
-    const lastEvent = events[events.length - 1]
-      || await this.getLastYesterdayEvent();
+    const lastEvent = events[events.length - 1];
 
     if (!lastEvent) {
       return null;
