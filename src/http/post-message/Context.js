@@ -4,13 +4,17 @@ const stateForTmpButtons = { message: null, timerId: 0 };
 class TLContext extends Context {
   async replyWithTmpButtons(text, buttons) {
     await removeTmpButtons(this);
-    stateForTmpButtons.message = await this.replyWithHTML(
+    const message = await this.replyWithHTML(
       text,
-      Markup.inlineKeyboard(buttons),
+      Markup.inlineKeyboard(buttons || []),
     );
-    stateForTmpButtons.timerId = setTimeout(() => {
-      removeTmpButtons(this).catch(console.error);
-    }, 30000);
+
+    if (buttons && buttons.length) {
+      stateForTmpButtons.message = message;
+      stateForTmpButtons.timerId = setTimeout(() => {
+        removeTmpButtons(this).catch(console.error);
+      }, 4000);
+    }
   }
 }
 

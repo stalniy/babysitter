@@ -19,9 +19,8 @@ async function exec(ctx) {
     ? `${prefix} Waking time is <b>${formatDuration(status.lastEvent.duration)}</b> #${event.id}`
     : `${prefix} #${event.id}`;
 
-  await ctx.replyWithTmpButtons(message, [
-    [buttons.wakeUp],
-  ]);
+  await ctx.answerCbQuery();
+  await ctx.replyWithTmpButtons(message);
 }
 
 module.exports = {
