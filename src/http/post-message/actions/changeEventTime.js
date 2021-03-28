@@ -1,7 +1,7 @@
 const { emojify } = require('node-emoji');
 const { timeToUTC, isValidTime } = require('../services/date');
 
-const ONE_HOUR_MS = 60 * 60 * 1000;
+const EDIT_LIMIT_IN_MS = 24 * 60 * 60 * 1000;
 
 async function exec(ctx) {
   const reply = ctx.message.reply_to_message;
@@ -21,8 +21,8 @@ async function exec(ctx) {
   const originalMessageDate = new Date(reply.date * 1000);
   const newDate = timeToUTC(originalMessageDate, newTime);
 
-  if (newDate - originalMessageDate > ONE_HOUR_MS) {
-    return ctx.reply('You cannot change an event after one hour from its creation');
+  if (newDate - originalMessageDate > EDIT_LIMIT_IN_MS) {
+    return ctx.reply('You cannot change an event after 24 hours from its creation');
   }
 
   const result = await ctx.regime.setEventTime(eventId, newDate);
