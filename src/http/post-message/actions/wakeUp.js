@@ -1,3 +1,4 @@
+const { get } = require('node-emoji');
 const { buttons, mainKeyboard } = require('./keyboard');
 const { formatTime, formatDuration } = require('../services/date');
 
@@ -5,7 +6,7 @@ async function exec(ctx) {
   const status = await ctx.regime.getStatus();
 
   if (status && status.lastEvent.type === 'wakeUp') {
-    return ctx.reply(`${ctx.baby.name} is no sleeping now ${get('man-shrugging')}.`);
+    return ctx.reply(`${ctx.baby.name} is not sleeping now ${get('man-shrugging')}.`);
   }
 
   const event = await ctx.regime.createEvent('wakeUp');

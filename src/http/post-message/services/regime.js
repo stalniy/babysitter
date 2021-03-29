@@ -53,12 +53,19 @@ class RegimeService {
     return event;
   }
 
+  async getEventById(eventId) {
+    const events = await this.getEvents();
+    const eventToUpdateIdx = events.findIndex((event) => event.id === eventId);
+
+    return eventToUpdateIdx === -1 ? null : events[eventToUpdateIdx];
+  }
+
   async setEventTime(eventId, newDate) {
     const events = await this.getEvents();
     const eventToUpdateIdx = events.findIndex((event) => event.id === eventId);
 
     if (eventToUpdateIdx === -1) {
-      return Result.error(`Trying to update time of unknown event with id ${eventId}`);
+      return Result.error('Trying to update time of event that was created not today');
     }
 
     const newTimestamp = newDate.getTime();
@@ -74,6 +81,11 @@ class RegimeService {
     }
 
     const eventToUpdate = events[eventToUpdateIdx];
+    const changedEvent = {
+      ...eventToUpdate,
+      at: newTimestamp,
+      babyId: this.babyId,
+    };
     const queries = [
       partiql`
         DELETE FROM "${partiql.raw(TableName)}"
@@ -82,11 +94,7 @@ class RegimeService {
           AND "id" = ${eventToUpdate.id}
       `,
       partiql`
-        INSERT INTO "${partiql.raw(TableName)}" VALUE ${{
-  ...eventToUpdate,
-  at: newTimestamp,
-  babyId: this.babyId,
-}}
+        INSERT INTO "${partiql.raw(TableName)}" VALUE ${changedEvent}
       `,
     ];
     await db.executeTransaction({ TransactStatements: queries });
@@ -168,6 +176,24 @@ class RegimeService {
         duration: calcDuration(startDate, event.at),
       };
     });
+  }
+
+  async cancelEvent(eventId) {
+    const eventToRemove = await this.getEventById(eventId);
+
+    if (!eventToRemove) {
+      return Result.error('Trying to cancel event that was created not during this day.');
+    }
+
+    await db.executeStatement(partiql`
+      DELETE FROM "${partiql.raw(TableName)}"
+      WHERE "babyId" = ${this.babyId}
+        AND "at" = ${eventToRemove.at}
+        AND "id" = ${eventToRemove.id}
+    `);
+    this.events = this.events.filter(event => event !== eventToRemove);
+
+    return Result.value(eventToRemove);
   }
 }
 

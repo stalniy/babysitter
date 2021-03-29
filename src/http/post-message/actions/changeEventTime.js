@@ -1,4 +1,4 @@
-const { emojify } = require('node-emoji');
+const { get } = require('node-emoji');
 const { timeToUTC, isValidTime } = require('../services/date');
 
 const EDIT_LIMIT_IN_MS = 24 * 60 * 60 * 1000;
@@ -31,7 +31,7 @@ async function exec(ctx) {
     await ctx.reply(result.message);
   } else {
     await ctx.reply(
-      `The time was successfully changed ${emojify(':thumbsup:')}.\n`
+      `The time was successfully changed ${get('thumbsup')}.\n`
       + 'Do you want to check the /status?',
     );
   }
