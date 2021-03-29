@@ -1,19 +1,15 @@
 const { Telegraf, session } = require('telegraf');
-const { Context, removeTmpButtons } = require('./Context');
 const { stage } = require('./flows');
 const RegimeService = require('./services/regime');
 const { dateRangeInUserTz } = require('./services/date');
 const babies = require('./services/baby');
 
 module.exports = function createBot(token, options) {
-  const bot = new Telegraf(token, {
-    contextType: Context,
-  });
+  const bot = new Telegraf(token);
 
   bot.use(session());
   bot.use(stage);
   bot.use(async (ctx, next) => {
-    await removeTmpButtons(ctx);
     ctx.baby = await babies.get(ctx.chat.id);
     const babyName = ctx.baby && ctx.baby.name || 'unknown';
 
@@ -50,6 +46,11 @@ module.exports = function createBot(token, options) {
       bot.hears(action.trigger, action.exec);
     }
   });
+
+  bot.catch((error, ctx) => {
+    console.error(error);
+    ctx.reply('Error occurred')
+  })
 
   return bot;
 };

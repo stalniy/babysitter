@@ -38,6 +38,6 @@ async function exec(ctx) {
 }
 
 module.exports = {
-  trigger: /^(?:change\s+to )?(.+)/,
+  trigger: /^(\d{1,2}:\d{1,2})/,
   exec,
 };
