@@ -21,6 +21,6 @@ async function exec(ctx) {
 }
 
 module.exports = {
-  trigger: buttons.wakeUp.trigger,
+  trigger: buttons.wakeUp.text,
   exec,
 };
