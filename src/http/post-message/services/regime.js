@@ -10,11 +10,11 @@ const cache = new Map();
 const TableName = tableName('babysitter_regime');
 
 class RegimeService {
-  static for(babyId, range) {
-    const key = `${babyId}-${range.start.getTime()}-${range.end.getTime()}`;
+  static for(baby, range) {
+    const key = `${baby.id}-${range.start.getTime()}-${range.end.getTime()}`;
 
     if (!cache.has(key)) {
-      const service = new RegimeService(babyId, range);
+      const service = new RegimeService(baby.babyId || baby.id, range);
       cache.set(key, service);
       return service;
     }

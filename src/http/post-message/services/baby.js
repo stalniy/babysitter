@@ -14,13 +14,17 @@ class Baby {
   ageInYears() {
     const birthDate = new Date(this.birthDate);
     const now = new Date();
-    const year = now.getFullYear() - birthDate.getFullYear();
-    const month = now.getMonth() - birthDate.getMonth();
+    let year = now.getFullYear() - birthDate.getFullYear();
+    let month = now.getMonth();
+    const monthDiff = month - birthDate.getMonth();
 
-    if (month < 0 || month === 0 && now.getDate() < birthDate.getDate()) {
-      return year - 1;
+    if (monthDiff < 0 || monthDiff === 0 && now.getDate() < birthDate.getDate()) {
+      year--;
+    } else {
+      // month = monthDiff;
     }
 
+    // return { year, month: month + 1 };
     return year;
   }
 
@@ -47,8 +51,11 @@ async function get(id) {
       Key: marshall({ id }),
     });
     const props = response.Item ? unmarshall(response.Item) : null;
-    baby = new Baby(props);
-    babies.set(id, baby);
+
+    if (props) {
+      baby = new Baby(props);
+      babies.set(id, baby);
+    }
   }
 
   return baby;

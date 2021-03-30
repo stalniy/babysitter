@@ -26,7 +26,7 @@ module.exports = function createBot(token, options) {
       return;
     }
 
-    ctx.regime = RegimeService.for(ctx.baby.id, dateRangeInUserTz());
+    ctx.regime = RegimeService.for(ctx.baby, dateRangeInUserTz());
     await next();
   });
   const commandsInfo = [];

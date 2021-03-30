@@ -22,7 +22,7 @@ async function exec(ctx) {
   }
 
   const title = `<b>Events for ${formatDate(dateRange.start)}:</b>`;
-  const events = await RegimeService.for(ctx.baby.id, dateRange).getEventsStats();
+  const events = await RegimeService.for(ctx.baby, dateRange).getEventsStats();
 
   if (!events.length) {
     return ctx.replyWithHTML(`${title}\nNo events yet`);
