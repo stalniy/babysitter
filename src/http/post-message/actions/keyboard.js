@@ -6,8 +6,8 @@ const buttons = {
   status: Markup.button.text("/status"),
   events: Markup.button.text("/events"),
   baby: Markup.button.text("/baby"),
-  wakeUp: Markup.button.text(`/do ${get('hugging_face')}`),
-  sleep: Markup.button.text(`/do ${get('sleeping')}`),
+  wakeUp: Markup.button.text(get('hugging_face')),
+  sleep: Markup.button.text(get('sleeping')),
 };
 
 function mainKeyboard(options) {
