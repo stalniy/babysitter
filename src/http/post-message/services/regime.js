@@ -198,7 +198,9 @@ class RegimeService {
 }
 
 function calcSummary(events) {
-  const summary = {};
+  const summary = {
+    totals: { amount: 0, duration: 0 }
+  };
 
   events.forEach((event, index) => {
     const startDate = index + 1 < events.length
@@ -211,6 +213,8 @@ function calcSummary(events) {
     };
     summary[event.type].amount++;
     summary[event.type].duration += calcDuration(startDate, event.at);
+    summary.totals.duration += summary[event.type].duration;
+    summary.totals.amount++;
   });
 
   return summary;
