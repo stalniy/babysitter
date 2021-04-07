@@ -191,7 +191,7 @@ class RegimeService {
         AND "at" = ${eventToRemove.at}
         AND "id" = ${eventToRemove.id}
     `);
-    this.events = this.events.filter(event => event !== eventToRemove);
+    this.events = this.events.filter((event) => event !== eventToRemove);
 
     return Result.value(eventToRemove);
   }
@@ -199,21 +199,22 @@ class RegimeService {
 
 function calcSummary(events) {
   const summary = {
-    totals: { amount: 0, duration: 0 }
+    totals: { amount: 0, duration: 0 },
   };
 
   events.forEach((event, index) => {
     const startDate = index + 1 < events.length
       ? events[index + 1].at
       : Date.now();
+    const eventDuration = calcDuration(startDate, event.at);
 
     summary[event.type] = summary[event.type] || {
       amount: 0,
       duration: 0,
     };
     summary[event.type].amount++;
-    summary[event.type].duration += calcDuration(startDate, event.at);
-    summary.totals.duration += summary[event.type].duration;
+    summary[event.type].duration += eventDuration;
+    summary.totals.duration += eventDuration;
     summary.totals.amount++;
   });
 
