@@ -2,7 +2,7 @@ const RegimeService = require('../services/regime');
 
 async function exec(ctx) {
   RegimeService.clearCache();
-  ctx.reply('Done');
+  await ctx.reply('Done');
 }
 
 module.exports = {
