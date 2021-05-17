@@ -22,6 +22,10 @@ class RegimeService {
     return cache.get(key);
   }
 
+  static clearCache() {
+    cache.clear();
+  }
+
   constructor(babyId, dateRange) {
     this.babyId = babyId;
     this.dateRange = dateRange;

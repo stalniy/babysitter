@@ -16,7 +16,7 @@ async function exec(ctx) {
     : prefix;
 
   await ctx.replyWithHTML(`${message} #${event.id}`, mainKeyboard({
-    nextEventButton: buttons.wakeUp
+    nextEventButton: buttons.wakeUp,
   }));
 }
 

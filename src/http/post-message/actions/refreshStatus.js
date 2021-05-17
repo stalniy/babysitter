@@ -4,7 +4,7 @@ const { formatTime, formatDuration } = require('../services/date');
 
 const ONE_HOUR = 60 * 60 * 1000;
 const INLINE_BUTTONS = Markup.inlineKeyboard([
-  buttons.refreshStatus
+  buttons.refreshStatus,
 ]);
 
 async function exec(ctx) {
@@ -17,10 +17,10 @@ async function exec(ctx) {
     message += 'Cannot provide status because there are no events.';
   }
 
-  if (ctx.updateType === "callback_query") {
+  if (ctx.updateType === 'callback_query') {
     await ctx.editMessageText(message, {
-      parse_mode: "HTML",
-      reply_markup: ctx.callbackQuery.message.reply_markup
+      parse_mode: 'HTML',
+      reply_markup: ctx.callbackQuery.message.reply_markup,
     });
     await ctx.answerCbQuery();
   } else {
@@ -31,10 +31,10 @@ async function exec(ctx) {
 function renderStatus(baby, status) {
   return `${`${baby.name} has been #${status.lastEvent.type} `
     + `for <b>${formatDuration(status.lastEvent.duration)}</b> `
-    + `(at ${formatTime(status.lastEvent.at)}).\n`}\n`
-    + renderSummary(status.summary.fallAsleep, 'Dreams')
-    + renderSummary(status.summary.wakeUp, 'Waking')
-    + renderTotalSummary(status);
+    + `(at ${formatTime(status.lastEvent.at)}).\n`}\n${
+    renderSummary(status.summary.fallAsleep, 'Dreams')
+  }${renderSummary(status.summary.wakeUp, 'Waking')
+  }${renderTotalSummary(status)}`;
 }
 
 function renderSummary(summary, title) {
@@ -48,7 +48,7 @@ function renderSummary(summary, title) {
 }
 
 function renderTotalSummary(status) {
-  const totals = status.summary.totals;
+  const { totals } = status.summary;
   let duration = formatDuration(totals.duration);
 
   if (status.lastEvent.type !== 'fallAsleep') {
@@ -63,7 +63,7 @@ function renderTotalSummary(status) {
     }
   }
 
-  return `<b>Totals:</b>\n`
+  return '<b>Totals:</b>\n'
     + `    amount: ${totals.amount}\n`
     + `    total time: ${duration}\n`;
 }

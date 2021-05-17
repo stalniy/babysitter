@@ -15,7 +15,7 @@ class Baby {
     const birthDate = new Date(this.birthDate);
     const now = new Date();
     let year = now.getFullYear() - birthDate.getFullYear();
-    let month = now.getMonth();
+    const month = now.getMonth();
     const monthDiff = month - birthDate.getMonth();
 
     if (monthDiff < 0 || monthDiff === 0 && now.getDate() < birthDate.getDate()) {

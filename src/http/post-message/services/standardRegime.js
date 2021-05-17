@@ -1,4 +1,4 @@
-const { compile } = require("./regimeCompiler");
+const { compile } = require('./regimeCompiler');
 
 module.exports = compile(`
   age       | wakingTime     | amountOfDayDreams | dayDreamTime | totalDayDreamTime | nightDreamTime | totalDreamTime

@@ -93,8 +93,8 @@ module.exports = {
   compile(regime) {
     const items = parseTable(PARSING_SCHEMA, regime);
 
-    return (ageInMonth) => {
-      return items.find(item => item.age.value[0] <= ageInMonth && ageInMonth <= item.age.value[1]);
-    };
-  }
-}
+    return (ageInMonth) => items.find((item) => {
+      return item.age.value[0] <= ageInMonth && ageInMonth <= item.age.value[1]
+    });
+  },
+};

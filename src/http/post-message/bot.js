@@ -32,10 +32,12 @@ module.exports = function createBot(token, options) {
   const commandsInfo = [];
   options.commands.forEach((command) => {
     bot.command(command.name, command.exec);
-    commandsInfo.push({
-      command: `/${command.name}`,
-      description: command.description,
-    });
+    if (!command.hidden) {
+      commandsInfo.push({
+        command: `/${command.name}`,
+        description: command.description,
+      });
+    }
   });
   bot.telegram.setMyCommands(commandsInfo);
 
@@ -49,8 +51,8 @@ module.exports = function createBot(token, options) {
 
   bot.catch((error, ctx) => {
     console.error(error);
-    ctx.reply('Error occurred')
-  })
+    ctx.reply('Error occurred');
+  });
 
   return bot;
 };
